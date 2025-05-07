@@ -8,19 +8,19 @@ on:
       deploy_client:
         description: 'Deploy client to production'
         type: boolean
-        default: false
+        default: true
       deploy_server:
         description: 'Deploy server to production'
         type: boolean
-        default: false
+        default: true
       deploy_embedding:
         description: 'Deploy embedding service to production'
         type: boolean
-        default: false
+        default: true
       apply_migrations:
         description: 'Apply Supabase migrations to production'
         type: boolean
-        default: false
+        default: true
 
 env:
   NODE_VERSION: '20'
@@ -56,7 +56,7 @@ jobs:
         uses: dorny/paths-filter@v2
         with:
           base: ${{ steps.commits.outputs.base }}
-          head: ${{ steps.commits.outputs.head }}
+          ref: ${{ steps.commits.outputs.head }}
           filters: |
             client:
               - 'apps/client/**'
