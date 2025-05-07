@@ -31,18 +31,18 @@ env:
 jobs:
   detect_changes:
     runs-on: ubuntu-latest
-    if: github.event_name != 'workflow_dispatch'
     outputs:
-      client: ${{ github.event_name == 'workflow_dispatch' && inputs.deploy_client || steps.filter.outputs.client }}
-      server: ${{ github.event_name == 'workflow_dispatch' && inputs.deploy_server || steps.filter.outputs.server }}
-      embedding: ${{ github.event_name == 'workflow_dispatch' && inputs.deploy_embedding || steps.filter.outputs.embedding }}
-      supabase_migrations: ${{ github.event_name == 'workflow_dispatch' && inputs.apply_migrations || steps.filter.outputs.migrations }}
+      client: ${{ steps.set_outputs.outputs.client }}
+      server: ${{ steps.set_outputs.outputs.server }}
+      embedding: ${{ steps.set_outputs.outputs.embedding }}
+      supabase_migrations: ${{ steps.set_outputs.outputs.supabase_migrations }}
     steps:
       - uses: actions/checkout@v4
         with:
           fetch-depth: 0
       - name: Determine commit range
         id: commits
+        if: github.event_name != 'workflow_dispatch'
         run: |
           if [[ "${{ github.event_name }}" == "pull_request" ]]; then
             echo "base=${{ github.event.pull_request.base.sha }}" >> $GITHUB_OUTPUT
@@ -53,6 +53,7 @@ jobs:
           fi
       - name: Filter for changed paths
         id: filter
+        if: github.event_name != 'workflow_dispatch'
         uses: dorny/paths-filter@v2
         with:
           base: ${{ steps.commits.outputs.base }}
@@ -66,6 +67,22 @@ jobs:
               - 'services/embedding-service/**'
             migrations:
               - 'supabase/**'
+      - name: Set outputs
+        id: set_outputs
+        run: |
+          if [ "${{ github.event_name }}" = "workflow_dispatch" ]; then
+            # For manual trigger, force all jobs to run
+            echo "client=true" >> $GITHUB_OUTPUT
+            echo "server=true" >> $GITHUB_OUTPUT
+            echo "embedding=true" >> $GITHUB_OUTPUT
+            echo "supabase_migrations=true" >> $GITHUB_OUTPUT
+          else
+            # For automatic trigger, use filter outputs based on changes
+            echo "client=${{ steps.filter.outputs.client }}" >> $GITHUB_OUTPUT
+            echo "server=${{ steps.filter.outputs.server }}" >> $GITHUB_OUTPUT
+            echo "embedding=${{ steps.filter.outputs.embedding }}" >> $GITHUB_OUTPUT
+            echo "supabase_migrations=${{ steps.filter.outputs.migrations }}" >> $GITHUB_OUTPUT
+          fi
 
   apply_migrations:
     needs: detect_changes
