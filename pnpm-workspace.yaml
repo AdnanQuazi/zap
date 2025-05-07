@@ -1,0 +1,10 @@
+packages:
+  - 'apps/client'
+  - 'apps/server'
+  - 'services/embedding-service'
+  - 'supabase'
+# Only these dependencies will trigger full build caching
+onlyBuiltDependencies:
+  - protobufjs
+  - sharp
+  - unrs-resolver

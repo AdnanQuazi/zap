@@ -1,0 +1,76 @@
+name: deploy-slack-manifest-staging
+
+on:
+  push:
+    branches:
+      - main
+    paths:
+      - 'apps/server/slack/manifest.template.json'
+  workflow_dispatch:
+
+jobs:
+  update-slack-manifest:
+    name: Update Slack Manifest
+    runs-on: ubuntu-latest
+    environment: staging
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v4
+
+      - name: Render manifest.json
+        env:
+          BASE_URL: ${{ secrets.BASE_URL }}
+        run: |
+          mkdir -p apps/server/slack
+          envsubst < apps/server/slack/manifest.template.json > apps/server/slack/manifest.json
+          echo "✅ Successfully rendered manifest.json for staging"
+
+      - name: Refresh Slack Token
+        id: refresh_token
+        env:
+          SLACK_REFRESH_TOKEN: ${{ secrets.SLACK_REFRESH_TOKEN }}
+        run: |
+          echo "🔁 Refreshing Slack token..."
+          RESPONSE=$(curl -sS -X POST https://slack.com/api/tooling.tokens.rotate \
+            -H "Content-Type: application/x-www-form-urlencoded" \
+            --data-urlencode "refresh_token=$SLACK_REFRESH_TOKEN")
+
+          echo "$RESPONSE" > slack_token_response.json
+
+          if jq -e '.ok == true' slack_token_response.json > /dev/null; then
+            NEW_TOKEN=$(jq -r .token slack_token_response.json)
+            echo "✅ Slack token refreshed"
+            echo "::add-mask::$NEW_TOKEN"
+            echo "SLACK_TOKEN=$NEW_TOKEN" >> $GITHUB_ENV
+          else
+            echo "❌ Failed to refresh Slack token:"
+            jq '.error' slack_token_response.json
+            exit 1
+          fi
+
+      - name: Update Slack manifest
+        id: update_manifest
+        env:
+          SLACK_TOKEN: ${{ env.SLACK_TOKEN }}
+          SLACK_APP_ID: ${{ secrets.SLACK_APP_ID }}
+        run: |
+          echo "📦 Preparing to update Slack manifest..."
+          MANIFEST_JSON=$(jq -c . apps/server/slack/manifest.json)
+
+          RESPONSE=$(curl -sS -X POST https://slack.com/api/apps.manifest.update \
+            -H "Authorization: Bearer $SLACK_TOKEN" \
+            -H "Content-Type: application/json" \
+            --data '{
+              "app_id": "'"$SLACK_APP_ID"'",
+              "manifest": '"$MANIFEST_JSON"'
+            }')
+
+          echo "$RESPONSE" > response.json
+
+          if jq -e '.ok == true' response.json > /dev/null; then
+            echo "✅ Successfully updated Slack manifest for production"
+          else
+            echo "❌ Failed to update Slack manifest:"
+            jq '.error' response.json
+            exit 1
+          fi
