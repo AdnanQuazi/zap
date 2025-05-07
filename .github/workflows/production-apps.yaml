@@ -100,7 +100,9 @@ jobs:
     env:
       MODAL_TOKEN_ID: ${{ secrets.MODAL_TOKEN_ID }}
       MODAL_TOKEN_SECRET: ${{ secrets.MODAL_TOKEN_SECRET }}
-    working-directory: ./services/embedding-service
+    defaults:
+      run:
+        working-directory: ./services/embedding-service
     steps:
       - uses: actions/checkout@v4
       - uses: actions/setup-python@v5
@@ -129,6 +131,7 @@ jobs:
           - name: Install Vercel CLI
             run: npm install --global vercel@latest
           - name: Deploy Project Artifacts to Vercel
+            working-directory: ./apps/server
             run: vercel deploy --prod --token=${{ secrets.VERCEL_TOKEN }}
 
   deploy_client:
@@ -142,7 +145,9 @@ jobs:
     env:
       VERCEL_ORG_ID: ${{ secrets.VERCEL_ORG_ID }}
       VERCEL_PROJECT_ID: ${{ secrets.VERCEL_CLIENT_PROJECT_ID }}
-    working-directory: ./apps/client
+    defaults:
+      run:
+        working-directory: ./apps/client
     steps:
           - uses: actions/checkout@v4
           - name: Install Vercel CLI
