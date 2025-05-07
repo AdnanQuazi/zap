@@ -91,8 +91,8 @@ jobs:
     environment: staging
     env:
       SUPABASE_ACCESS_TOKEN: ${{ secrets.SUPABASE_ACCESS_TOKEN }}
-      SUPABASE_DB_PASSWORD: ${{ secrets.DB_PASSWORD }}
-      SUPABASE_PROJECT_ID: ${{ secrets.PROJECT_ID }}
+      SUPABASE_DB_PASSWORD: ${{ secrets.SUPABASE_DB_PASSWORD }}
+      SUPABASE_PROJECT_ID: ${{ secrets.SUPABASE_PROJECT_ID }}
     steps:
       - uses: actions/checkout@v4
       - uses: supabase/setup-cli@v1
@@ -124,7 +124,7 @@ jobs:
       - name: Install Modal
         run: pip install modal==${{ env.MODAL_VERSION }}
       - name: Deploy to Modal
-        run: modal deploy embedding-service.py -e staging
+        run: modal deploy embedding_service.py -e staging
 
   deploy_server:
     needs: [detect_changes, apply_migrations, deploy_embedding]
