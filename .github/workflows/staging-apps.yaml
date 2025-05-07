@@ -1,0 +1,157 @@
+name: deploy-apps-and-services-staging
+
+on:
+  push:
+    branches: [staging]
+  workflow_dispatch:
+    inputs:
+      deploy_client:
+        description: 'Deploy client to staging'
+        type: boolean
+        default: false
+      deploy_server:
+        description: 'Deploy server to staging'
+        type: boolean
+        default: false
+      deploy_embedding:
+        description: 'Deploy embedding service to staging'
+        type: boolean
+        default: false
+      apply_migrations:
+        description: 'Apply Supabase migrations to staging'
+        type: boolean
+        default: false
+
+env:
+  NODE_VERSION: '20'
+  PYTHON_VERSION: '3.11.9'
+  SUPABASE_CLI_VERSION: '2.22.6'
+  MODAL_VERSION: '0.74.24'
+
+jobs:
+  detect_changes:
+    runs-on: ubuntu-latest
+    if: github.event_name != 'workflow_dispatch'
+    outputs:
+      client: ${{ steps.filter.outputs.client }}
+      server: ${{ steps.filter.outputs.server }}
+      embedding: ${{ steps.filter.outputs.embedding }}
+      supabase_migrations: ${{ steps.filter.outputs.migrations }}
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          fetch-depth: 0
+      - name: Determine commit range
+        id: commits
+        run: |
+          if [[ "${{ github.event_name }}" == "pull_request" ]]; then
+            echo "base=${{ github.event.pull_request.base.sha }}" >> $GITHUB_OUTPUT
+            echo "head=${{ github.event.pull_request.head.sha }}" >> $GITHUB_OUTPUT
+          else
+            echo "base=${{ github.event.before }}" >> $GITHUB_OUTPUT
+            echo "head=${{ github.event.after }}" >> $GITHUB_OUTPUT
+          fi
+      - name: Filter for changed paths
+        id: filter
+        uses: dorny/paths-filter@v2
+        with:
+          base: ${{ steps.commits.outputs.base }}
+          head: ${{ steps.commits.outputs.head }}
+          filters: |
+            client:
+              - 'apps/client/**'
+            server:
+              - 'apps/server/**'
+            embedding:
+              - 'services/embedding-service/**'
+            migrations:
+              - 'supabase/**'
+
+  apply_migrations:
+    needs: detect_changes
+    if: |
+      (github.event_name == 'workflow_dispatch' && inputs.apply_migrations) ||
+      (needs.detect_changes.outputs.supabase_migrations == 'true')
+    runs-on: ubuntu-latest
+    environment: staging
+    env:
+      SUPABASE_ACCESS_TOKEN: ${{ secrets.SUPABASE_ACCESS_TOKEN }}
+      SUPABASE_DB_PASSWORD: ${{ secrets.DB_PASSWORD }}
+      SUPABASE_PROJECT_ID: ${{ secrets.PROJECT_ID }}
+    steps:
+      - uses: actions/checkout@v4
+      - uses: supabase/setup-cli@v1
+        with:
+          version: ${{ env.SUPABASE_CLI_VERSION }}
+      - name: Link to staging project
+        run: supabase link --project-ref ${{ env.SUPABASE_PROJECT_ID }}
+      - name: Dry-run migrations
+        run: supabase db push --dry-run --db-password ${{ env.SUPABASE_DB_PASSWORD }}
+      - name: Apply migrations
+        run: supabase db push --db-password ${{ env.SUPABASE_DB_PASSWORD }}
+
+  deploy_embedding:
+    needs: detect_changes
+    if: |
+      ((github.event_name == 'workflow_dispatch' && inputs.deploy_embedding) || 
+      (needs.detect_changes.outputs.embedding == 'true'))
+    runs-on: ubuntu-latest
+    environment: staging
+    env:
+      MODAL_TOKEN_ID: ${{ secrets.MODAL_TOKEN_ID }}
+      MODAL_TOKEN_SECRET: ${{ secrets.MODAL_TOKEN_SECRET }}
+    working-directory: ./services/embedding-service
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-python@v5
+        with:
+          python-version: ${{ env.PYTHON_VERSION }}
+      - name: Install Modal
+        run: pip install modal==${{ env.MODAL_VERSION }}
+      - name: Deploy to Modal
+        run: modal deploy embedding-service.py -e staging
+
+  deploy_server:
+    needs: [detect_changes, apply_migrations, deploy_embedding]
+    if: |
+        ((github.event_name == 'workflow_dispatch' && inputs.deploy_server) || 
+        (needs.detect_changes.outputs.server == 'true')) && 
+        (needs.apply_migrations.result == 'success' || needs.apply_migrations.result == 'skipped') &&
+        (needs.deploy_embedding.result == 'success' || needs.deploy_embedding.result == 'skipped')
+    runs-on: ubuntu-latest
+    environment: staging
+    env:
+      VERCEL_ORG_ID: ${{ secrets.VERCEL_ORG_ID }}
+      VERCEL_PROJECT_ID: ${{ secrets.VERCEL_SERVER_PROJECT_ID }}
+    working-directory: ./apps/server
+    steps:
+          - uses: actions/checkout@v4
+          - name: Install Vercel CLI
+            run: npm install --global vercel@latest
+          - name: Deploy Project Artifacts to Vercel
+            run: vercel deploy --token=${{ secrets.VERCEL_TOKEN }}
+
+  deploy_client:
+    needs: [detect_changes, deploy_server]
+    if: |
+        ((github.event_name == 'workflow_dispatch' && inputs.deploy_client) || 
+        (needs.detect_changes.outputs.client == 'true')) && 
+        (needs.deploy_server.result == 'success' || needs.deploy_server.result == 'skipped')
+    runs-on: ubuntu-latest
+    environment: staging
+    env:
+      VERCEL_ORG_ID: ${{ secrets.VERCEL_ORG_ID }}
+      VERCEL_PROJECT_ID: ${{ secrets.VERCEL_CLIENT_PROJECT_ID }}
+    working-directory: ./apps/client
+    steps:
+          - uses: actions/checkout@v4
+          - name: Install Vercel CLI
+            run: npm install --global vercel@latest
+          - name: Pull Vercel Environment Information
+            run: vercel pull --yes --environment=preview --token=${{ secrets.VERCEL_TOKEN }}
+          - name: Build Project Artifacts
+            run: vercel build --token=${{ secrets.VERCEL_TOKEN }}
+          - name: Deploy Project Artifacts to Vercel
+            run: vercel deploy --prebuilt --token=${{ secrets.VERCEL_TOKEN }}
+
+
