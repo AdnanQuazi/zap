@@ -33,10 +33,10 @@ jobs:
     runs-on: ubuntu-latest
     if: github.event_name != 'workflow_dispatch'
     outputs:
-      client: ${{ steps.filter.outputs.client }}
-      server: ${{ steps.filter.outputs.server }}
-      embedding: ${{ steps.filter.outputs.embedding }}
-      supabase_migrations: ${{ steps.filter.outputs.migrations }}
+      client: ${{ github.event_name == 'workflow_dispatch' && inputs.deploy_client || steps.filter.outputs.client }}
+      server: ${{ github.event_name == 'workflow_dispatch' && inputs.deploy_server || steps.filter.outputs.server }}
+      embedding: ${{ github.event_name == 'workflow_dispatch' && inputs.deploy_embedding || steps.filter.outputs.embedding }}
+      supabase_migrations: ${{ github.event_name == 'workflow_dispatch' && inputs.apply_migrations || steps.filter.outputs.migrations }}
     steps:
       - uses: actions/checkout@v4
         with:
@@ -69,9 +69,7 @@ jobs:
 
   apply_migrations:
     needs: detect_changes
-    if: |
-      (github.event_name == 'workflow_dispatch' && inputs.apply_migrations) ||
-      (needs.detect_changes.outputs.supabase_migrations == 'true')
+    if: needs.detect_changes.outputs.supabase_migrations == 'true'
     runs-on: ubuntu-latest
     environment: staging
     env:
@@ -92,9 +90,7 @@ jobs:
 
   deploy_embedding:
     needs: detect_changes
-    if: |
-      ((github.event_name == 'workflow_dispatch' && inputs.deploy_embedding) || 
-      (needs.detect_changes.outputs.embedding == 'true'))
+    if: needs.detect_changes.outputs.embedding == 'true'
     runs-on: ubuntu-latest
     environment: staging
     env:
@@ -116,8 +112,7 @@ jobs:
   deploy_server:
     needs: [detect_changes, apply_migrations, deploy_embedding]
     if: |
-        ((github.event_name == 'workflow_dispatch' && inputs.deploy_server) || 
-        (needs.detect_changes.outputs.server == 'true')) && 
+        needs.detect_changes.outputs.server == 'true' && 
         (needs.apply_migrations.result == 'success' || needs.apply_migrations.result == 'skipped') &&
         (needs.deploy_embedding.result == 'success' || needs.deploy_embedding.result == 'skipped')
     runs-on: ubuntu-latest
@@ -136,8 +131,7 @@ jobs:
   deploy_client:
     needs: [detect_changes, deploy_server]
     if: |
-        ((github.event_name == 'workflow_dispatch' && inputs.deploy_client) || 
-        (needs.detect_changes.outputs.client == 'true')) && 
+        needs.detect_changes.outputs.client == 'true' && 
         (needs.deploy_server.result == 'success' || needs.deploy_server.result == 'skipped')
     runs-on: ubuntu-latest
     environment: staging

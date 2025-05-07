@@ -3,7 +3,7 @@ name: deploy-slack-manifest-staging
 on:
   push:
     branches:
-      - main
+      - staging
     paths:
       - 'apps/server/slack/manifest.template.json'
   workflow_dispatch:
