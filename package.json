@@ -1,0 +1,20 @@
+{
+  "name": "zap",
+  "version": "1.0.0",
+  "private": true,
+  "packageManager": "pnpm@10.10.0",
+  "scripts": {
+    "generate-manifest": "node apps/server/scripts/generate-manifest.js",
+    "bootstrap": "pnpm install && pnpm run bootstrap:python",
+    "bootstrap:python": "cd services/embedding-service && pip install -r requirements.txt",
+    "dev": "turbo run dev --parallel",
+    "dev:server": "pnpm --filter zap-server run dev",
+    "dev:client": "pnpm --filter zap-client run dev",
+    "dev:python": "pnpm --filter embedding-service run dev",
+    "build": "turbo run build",
+    "lint": "turbo run lint"
+  },
+  "devDependencies": {
+    "turbo": "^2.5.2"
+  }
+}

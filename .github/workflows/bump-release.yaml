@@ -1,0 +1,25 @@
+name: Bump Version on PR Merge
+on:
+  pull_request:
+    types: [closed]
+    branches: [main]    # change to 'master' if that's still your default
+    
+jobs:
+  bump-version:
+    # only run when the PR was actually merged (not just closed)
+    if: github.event.pull_request.merged == true
+    runs-on: ubuntu-22.04
+    permissions:
+      contents: write    # allow tagging & pushing
+    steps:
+      - name: Checkout merge commit with full history
+        uses: actions/checkout@v4
+        with:
+          ref: ${{ github.event.pull_request.merge_commit_sha }}
+          fetch-depth: 0    # ← ensures all tags & commits are available for semver
+      - name: Bump version & push Git tag
+        uses: anothrNick/github-tag-action@v1
+        env:
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}  # or a PAT if you prefer
+          WITH_V: true       # prefix tags with "v" (e.g. v1.2.3)
+          PRERELEASE: false  # set to "true" if you want prerelease tags (e.g. v1.2.3-rc)
