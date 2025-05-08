@@ -26,7 +26,7 @@ jobs:
           APP_NAME: "Zap-Staging"
           COMMAND_PREFIX: "zap-staging"
         run: |
-          node server/scripts/generate-manifest.js
+          node apps/server/scripts/generate-manifest.js
 
       - name: Refresh Slack Token
         id: refresh_token
