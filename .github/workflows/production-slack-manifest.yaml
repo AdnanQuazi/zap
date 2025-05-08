@@ -54,6 +54,49 @@ jobs:
             exit 1
           fi
 
+      - name: Update Slack Refresh Token in Staging
+        uses: actions/github-script@v6
+        env:
+          NEW_REFRESH_TOKEN: ${{ steps.refresh_token.outputs.new_refresh_token }}
+        with:
+          github-token: ${{ secrets.GITHUB_TOKEN }}
+          script: |
+            try {
+              const secretName = 'SLACK_REFRESH_TOKEN';
+              const envName    = 'production';
+              const newValue   = process.env.NEW_REFRESH_TOKEN;
+
+              console.log(`🔐 Updating ${secretName} in ${envName} environment...`);
+
+              // 1) Fetch the repo-level public key for encrypting environment secrets
+              const { data: pubKey } = await github.rest.actions.getRepoPublicKey({
+                owner: context.repo.owner,
+                repo:  context.repo.repo,
+              });
+
+              // 2) Encrypt the new secret value
+              const sodium = require('libsodium-wrappers');
+              await sodium.ready;
+              const messageBytes   = Buffer.from(newValue);
+              const keyBytes       = Buffer.from(pubKey.key, 'base64');
+              const encryptedBytes = sodium.crypto_box_seal(messageBytes, keyBytes);
+              const encryptedValue = Buffer.from(encryptedBytes).toString('base64');
+
+              // 3) Push the encrypted secret into the “staging” environment
+              await github.rest.actions.createOrUpdateEnvironmentSecret({
+                owner: context.repo.owner,
+                repo:  context.repo.repo,
+                environment_name: envName,
+                secret_name:      secretName,
+                encrypted_value:  encryptedValue,
+                key_id:           pubKey.key_id,
+              });
+
+              console.log(`✅ Successfully updated ${secretName} in ${envName} environment`);
+            } catch (err) {
+              core.setFailed(`❌ Failed to update secret: ${err.message}`);
+            }
+
       - name: Update SLACK_REFRESH_TOKEN Secret
         if: steps.refresh_token.outputs.new_refresh_token != ''
         uses: actions/github-script@v6
