@@ -16,7 +16,6 @@ jobs:
     permissions:
       contents: read
       actions: write
-      secrets : write
     steps:
       - name: Checkout code
         uses: actions/checkout@v4
@@ -151,7 +150,7 @@ jobs:
       - name: Update Slack manifest
         id: update_manifest
         env:
-          SLACK_TOKEN: ${{ env.SLACK_TOKEN }}
+          SLACK_TOKEN: $SLACK_TOKEN
           SLACK_APP_ID: ${{ secrets.SLACK_APP_ID }}
         run: |
           echo "📦 Preparing to update Slack manifest..."
