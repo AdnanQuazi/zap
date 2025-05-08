@@ -7,7 +7,6 @@ from fastapi.security.api_key import APIKeyHeader
 from pydantic import BaseModel
 from starlette.status import HTTP_403_FORBIDDEN
 
-
 # Define the image with required dependencies
 image = (
     modal.Image.debian_slim()
