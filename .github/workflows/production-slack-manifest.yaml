@@ -47,6 +47,7 @@ jobs:
             # Update both tokens in the job environment for subsequent steps
             echo "SLACK_REFRESH_TOKEN=$NEW_REFRESH_TOKEN" >> $GITHUB_ENV
             echo "SLACK_TOKEN=$NEW_ACCESS_TOKEN" >> $GITHUB_ENV
+            echo "new_refresh_token=$NEW_REFRESH_TOKEN" >> $GITHUB_OUTPUT
           else
             echo "❌ Failed to rotate Slack token:"
             jq '.error' slack_token_response.json
