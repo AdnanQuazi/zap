@@ -27,7 +27,7 @@ jobs:
           COMMAND_PREFIX: "zap"
         run: |
           node apps/server/scripts/generate-manifest.js
-
+          
       - name: Refresh Slack Token
         id: refresh_token
         env:
