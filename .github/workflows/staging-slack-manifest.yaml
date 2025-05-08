@@ -54,53 +54,47 @@ jobs:
             exit 1
           fi
 
-      - name: Update SLACK_REFRESH_TOKEN Secret
-        if: steps.refresh_token.outputs.new_refresh_token != ''
+      - name: Update Slack Refresh Token in Staging
         uses: actions/github-script@v6
         env:
           NEW_REFRESH_TOKEN: ${{ steps.refresh_token.outputs.new_refresh_token }}
         with:
           github-token: ${{ secrets.GITHUB_TOKEN }}
           script: |
-            const core = require('@actions/core');
-            
             try {
-              // Get repository details from context
-              const { owner, repo } = context.repo;
-              const secret_name = 'SLACK_REFRESH_TOKEN';
-              const env_name = 'staging'; // Match the workflow environment
-              const new_secret_value = process.env.NEW_REFRESH_TOKEN;
-              
-              console.log(`🔐 Updating ${secret_name} in ${env_name} environment...`);
-              
-              // First get the public key to encrypt the secret
+              const secretName = 'SLACK_REFRESH_TOKEN';
+              const envName    = 'staging';
+              const newValue   = process.env.NEW_REFRESH_TOKEN;
+
+              console.log(`🔐 Updating ${secretName} in ${envName} environment...`);
+
+              // 1) Fetch the repo-level public key for encrypting environment secrets
               const { data: pubKey } = await github.rest.actions.getRepoPublicKey({
-                owner,
-                repo
+                owner: context.repo.owner,
+                repo:  context.repo.repo,
               });
-              
-              // Use sodium for encryption (which is available in the GitHub Actions environment)
+
+              // 2) Encrypt the new secret value
               const sodium = require('libsodium-wrappers');
               await sodium.ready;
-              
-              // Encrypt the secret
-              const messageBytes = Buffer.from(new_secret_value);
-              const keyBytes = Buffer.from(pubKey.key, 'base64');
+              const messageBytes   = Buffer.from(newValue);
+              const keyBytes       = Buffer.from(pubKey.key, 'base64');
               const encryptedBytes = sodium.crypto_box_seal(messageBytes, keyBytes);
-              const encrypted = Buffer.from(encryptedBytes).toString('base64');
-              
-              // Update the environment secret
+              const encryptedValue = Buffer.from(encryptedBytes).toString('base64');
+
+              // 3) Push the encrypted secret into the “staging” environment
               await github.rest.actions.createOrUpdateEnvironmentSecret({
-                repository_id: context.payload.repository.id,
-                environment_name: env_name,
-                secret_name: secret_name,
-                encrypted_value: encrypted,
-                key_id: pubKey.key_id
+                owner: context.repo.owner,
+                repo:  context.repo.repo,
+                environment_name: envName,
+                secret_name:      secretName,
+                encrypted_value:  encryptedValue,
+                key_id:           pubKey.key_id,
               });
-              
-              console.log(`✅ Successfully updated ${secret_name} in ${env_name} environment`);
-            } catch (error) {
-              core.setFailed(`Failed to update secret: ${error.message}`);
+
+              console.log(`✅ Successfully updated ${secretName} in ${envName} environment`);
+            } catch (err) {
+              core.setFailed(`❌ Failed to update secret: ${err.message}`);
             }
 
       - name: Update Slack manifest
