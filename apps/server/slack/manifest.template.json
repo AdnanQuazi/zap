@@ -1,6 +1,6 @@
 {
     "display_information": {
-        "name": "Zap"
+        "name": "${APP_NAME}"
     },
     "features": {
         "app_home": {
@@ -9,56 +9,56 @@
             "messages_tab_read_only_enabled": true
         },
         "bot_user": {
-            "display_name": "Zap",
+            "display_name": "${APP_NAME}",
             "always_online": true
         },
         "slash_commands": [
             {
-                "command": "/zap-ask",
+                "command": "/${COMMAND_PREFIX}-ask",
                 "url": "${BASE_URL}/slack/events",
                 "description": "Ask Zap a question based on past conversations and documents.",
                 "usage_hint": "[question]",
                 "should_escape": false
             },
             {
-                "command": "/zap-feedback",
+                "command": "/${COMMAND_PREFIX}-feedback",
                 "url": "${BASE_URL}/slack/events",
                 "description": "Submit feedback about Zap.",
                 "usage_hint": "[feedback]",
                 "should_escape": false
             },
             {
-                "command": "/zap-help",
+                "command": "/${COMMAND_PREFIX}-help",
                 "url": "${BASE_URL}/slack/events",
                 "description": "Display all available Zap commands with usage instructions.",
                 "should_escape": false
             },
             {
-                "command": "/zap-info",
+                "command": "/${COMMAND_PREFIX}-info",
                 "url": "${BASE_URL}/slack/events",
                 "description": "View bot installation details.",
                 "should_escape": false
             },
             {
-                "command": "/zap-optin",
+                "command": "/${COMMAND_PREFIX}-optin",
                 "url": "${BASE_URL}/slack/events",
                 "description": "Allow Zap to store your conversations and documents.",
                 "should_escape": false
             },
             {
-                "command": "/zap-optout",
+                "command": "/${COMMAND_PREFIX}-optout",
                 "url": "${BASE_URL}/slack/events",
                 "description": "Stop Zap from storing your conversations and documents.",
                 "should_escape": false
             },
             {
-                "command": "/zap-purge-all",
+                "command": "/${COMMAND_PREFIX}-purge-all",
                 "url": "${BASE_URL}/slack/events",
                 "description": "Admin only: Delete all user data stored by Zap.",
                 "should_escape": false
             },
             {
-                "command": "/zap-purge",
+                "command": "/${COMMAND_PREFIX}-purge",
                 "url": "${BASE_URL}/slack/events",
                 "description": "Delete all your personal data stored by Zap.",
                 "should_escape": false

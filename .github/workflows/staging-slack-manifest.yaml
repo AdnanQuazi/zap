@@ -23,10 +23,10 @@ jobs:
       - name: Render manifest.json
         env:
           BASE_URL: ${{ secrets.BASE_URL }}
+          APP_NAME: "Zap-Staging"
+          COMMAND_PREFIX: "zap-staging"
         run: |
-          mkdir -p apps/server/slack
-          envsubst < apps/server/slack/manifest.template.json > apps/server/slack/manifest.json
-          echo "✅ Successfully rendered manifest.json for staging"
+          node server/scripts/generate-manifest.js
 
       - name: Refresh Slack Token
         id: refresh_token
