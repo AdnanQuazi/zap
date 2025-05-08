@@ -72,10 +72,10 @@ jobs:
         run: |
           if [ "${{ github.event_name }}" = "workflow_dispatch" ]; then
             # For manual trigger, force all jobs to run
-            echo "client=true" >> $GITHUB_OUTPUT
-            echo "server=true" >> $GITHUB_OUTPUT
-            echo "embedding=true" >> $GITHUB_OUTPUT
-            echo "supabase_migrations=true" >> $GITHUB_OUTPUT
+            echo "client=${{ github.event.inputs.deploy_client }}" >> $GITHUB_OUTPUT
+            echo "server=${{ github.event.inputs.deploy_server }}" >> $GITHUB_OUTPUT
+            echo "embedding=${{ github.event.inputs.deploy_embedding }}" >> $GITHUB_OUTPUT
+            echo "supabase_migrations=${{ github.event.inputs.apply_migrations }}" >> $GITHUB_OUTPUT
           else
             # For automatic trigger, use filter outputs based on changes
             echo "client=${{ steps.filter.outputs.client }}" >> $GITHUB_OUTPUT
@@ -162,9 +162,5 @@ jobs:
           - uses: actions/checkout@v4
           - name: Install Vercel CLI
             run: npm install --global vercel@latest
-          - name: Pull Vercel Environment Information
-            run: vercel pull --yes --environment=preview --token=${{ secrets.VERCEL_TOKEN }}
-          - name: Build Project Artifacts
-            run: vercel build --token=${{ secrets.VERCEL_TOKEN }}
           - name: Deploy Project Artifacts to Vercel
-            run: vercel deploy --prebuilt --token=${{ secrets.VERCEL_TOKEN }}
+            run: vercel deploy --token=${{ secrets.VERCEL_TOKEN }}
