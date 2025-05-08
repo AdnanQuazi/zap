@@ -99,7 +99,7 @@ jobs:
         with:
           version: ${{ env.SUPABASE_CLI_VERSION }}
       - name: Link to staging project
-        run: supabase link --project-ref ${{ env.SUPABASE_PROJECT_ID }} --password ${{ env.SUPABASE_DB_PASSWORD }}
+        run: supabase link --project-ref "$SUPABASE_PROJECT_ID" --password "$SUPABASE_DB_PASSWORD"
       - name: Dry-run migrations
         run: supabase db push --dry-run
       - name: Apply migrations
@@ -168,5 +168,3 @@ jobs:
             run: vercel build --token=${{ secrets.VERCEL_TOKEN }}
           - name: Deploy Project Artifacts to Vercel
             run: vercel deploy --prebuilt --token=${{ secrets.VERCEL_TOKEN }}
-
-

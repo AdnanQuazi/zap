@@ -99,7 +99,7 @@ jobs:
         with:
           version: ${{ env.SUPABASE_CLI_VERSION }}
       - name: Link to production project
-        run: supabase link --project-ref ${{ env.SUPABASE_PROJECT_ID }} --password ${{ env.SUPABASE_DB_PASSWORD }}
+        run: supabase link --project-ref "$SUPABASE_PROJECT_ID" --password "$SUPABASE_DB_PASSWORD"
       - name: Dry-run migrations
         run: supabase db push --dry-run
       - name: Apply migrations
