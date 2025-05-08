@@ -6,7 +6,6 @@ from fastapi import FastAPI, Depends, HTTPException, Security
 from fastapi.security.api_key import APIKeyHeader
 from pydantic import BaseModel
 from starlette.status import HTTP_403_FORBIDDEN
-import uvicorn
 
 # Define the image with required dependencies
 image = (
@@ -109,6 +108,8 @@ def web():
 # Local development server
 def run_local_server():
     from dotenv import load_dotenv
+    import uvicorn
+    
     load_dotenv() 
     
     print("Starting local development server...")
