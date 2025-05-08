@@ -101,9 +101,9 @@ jobs:
       - name: Link to staging project
         run: supabase link --project-ref ${{ env.SUPABASE_PROJECT_ID }}
       - name: Dry-run migrations
-        run: supabase db push --dry-run --db-password ${{ env.SUPABASE_DB_PASSWORD }}
+        run: supabase db push --dry-run --password ${{ env.SUPABASE_DB_PASSWORD }}
       - name: Apply migrations
-        run: supabase db push --db-password ${{ env.SUPABASE_DB_PASSWORD }}
+        run: supabase db push --password ${{ env.SUPABASE_DB_PASSWORD }}
 
   deploy_embedding:
     needs: detect_changes

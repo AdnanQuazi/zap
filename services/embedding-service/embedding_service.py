@@ -6,8 +6,6 @@ from fastapi import FastAPI, Depends, HTTPException, Security
 from fastapi.security.api_key import APIKeyHeader
 from pydantic import BaseModel
 from starlette.status import HTTP_403_FORBIDDEN
-from dotenv import load_dotenv
-load_dotenv()  # This will load the environment variables from the .env file
 import uvicorn
 
 # Define the image with required dependencies
@@ -110,6 +108,9 @@ def web():
 
 # Local development server
 def run_local_server():
+    from dotenv import load_dotenv
+    load_dotenv() 
+    
     print("Starting local development server...")
     os.environ["ENVIRONMENT"] = "development"
     
