@@ -30,7 +30,7 @@ jobs:
         env:
           SLACK_REFRESH_TOKEN: ${{ secrets.SLACK_REFRESH_TOKEN }}
         run: |
-          echo "🔁 Refreshing Slack token..."
+          echo "🔁 Refreshing Slack refresh token..."
           RESPONSE=$(curl -sS -X POST https://slack.com/api/tooling.tokens.rotate \
             -H "Content-Type: application/x-www-form-urlencoded" \
             --data-urlencode "refresh_token=$SLACK_REFRESH_TOKEN")
@@ -38,12 +38,14 @@ jobs:
           echo "$RESPONSE" > slack_token_response.json
 
           if jq -e '.ok == true' slack_token_response.json > /dev/null; then
-            NEW_TOKEN=$(jq -r .token slack_token_response.json)
-            echo "✅ Slack token refreshed"
-            echo "::add-mask::$NEW_TOKEN"
-            echo "SLACK_TOKEN=$NEW_TOKEN" >> $GITHUB_ENV
+            NEW_REFRESH_TOKEN=$(jq -r .refresh_token slack_token_response.json)
+            NEW_ACCESS_TOKEN=$(jq -r .token slack_token_response.json)
+            echo "✅ Slack tokens rotated"
+            # Update both tokens in the job environment for subsequent steps
+            echo "SLACK_REFRESH_TOKEN=$NEW_REFRESH_TOKEN" >> $GITHUB_ENV
+            echo "SLACK_TOKEN=$NEW_ACCESS_TOKEN" >> $GITHUB_ENV
           else
-            echo "❌ Failed to refresh Slack token:"
+            echo "❌ Failed to rotate Slack token:"
             jq '.error' slack_token_response.json
             exit 1
           fi
