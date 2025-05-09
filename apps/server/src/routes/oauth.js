@@ -48,10 +48,8 @@ router.get("/oauth/callback", async (req, res) => {
     await storeInstallation(data);
 
     // Render success.ejs from your views folder
-    res.render("success", {
-      title: "Installation Complete",
-      message: "Slack Bot Installed Successfully!",
-    });
+    const redirectToClientUrl = new URL(process.env.SLACK_REDIRECT_TO_CLIENT_URL);
+    res.redirect(redirectToClientUrl.toString());
   } catch (err) {
     console.error("OAuth callback error:", err);
     res.status(500).send("Internal Server Error");

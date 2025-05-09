@@ -4,7 +4,6 @@ import { useState} from "react"
 import Link from "next/link"
 import { motion } from "framer-motion"
 import {ExternalLink, HelpCircle, FileText, MessageSquare } from "lucide-react"
-import Image from "next/image"
 
 export default function InstallationSuccessPage() {
   const [animationComplete] = useState(false)
@@ -67,7 +66,7 @@ export default function InstallationSuccessPage() {
               className="absolute inset-0 flex items-center justify-center"
             >
               <div className="w-24 h-24 rounded-full bg-[#000000] flex items-center justify-center">
-                <Image src="/logo.jpg" alt="Logo" className="w-24 h-24 rounded-full" />
+                <img src="/logo.jpg" alt="zap-logo" className="w-24 h-24 rounded-full" />
               </div>
 
               {/* Pulse effect */}

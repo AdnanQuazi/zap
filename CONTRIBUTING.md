@@ -27,7 +27,7 @@ Zap uses a templated Slack app manifest system to ensure a consistent structure 
 ### Manifest Files
 
 > **`manifest.template.json`**:  
-> This is the **template** you need to maintain and commit. It contains placeholders like `${BASE_URL}` that will be replaced with environment-specific values (e.g., your ngrok domain).
+> This is the **template** you need to maintain and commit. It contains placeholders like `${BASE_URL} ${APP_NAME} &{COMMAND_PREFIX}` that will be replaced with environment-specific values (e.g., your ngrok domain) in development .
 
 > **`manifest.json`**:  
 > This is the **auto-generated version** created when you run the `generate-manifest` command. It contains actual URLs, like your ngrok domain, and should never be edited or committed.
@@ -48,41 +48,47 @@ In short, if the structure of your app changes, update the template.
 
 1.  Start your ngrok and copy your HTTPS URL (e.g., `https://abc123.ngrok-free.app`).
     
-2.  Set your `BASE_URL` environment variable to your ngrok URL:
+2.  Set environment variables accordingly:
     
-    **Windows (PowerShell):**
-    
-    ```powershell
-    $env:BASE_URL="https://abc123.ngrok-free.app"
-    
-    ```
-    
-    **macOS/Linux (Bash):**
-    
-    ```bash
-    export BASE_URL=https://abc123.ngrok-free.app
-    
-    ```
+	  **Windows (PowerShell):**
+
+	```powershell
+	# Base URL for your local development tunnel (e.g. Ngrok)
+	$env:BASE_URL = "https://abc123.ngrok-free.app"
+
+	# Slack App’s display name (used in the manifest)
+	$env:APP_NAME = "Zap"
+
+	# Slash-Command prefix (e.g. "zap" → command “/{zap}-ask)
+	$env:COMMAND_PREFIX = "zap"
+	```
+
+	**macOS/Linux (Bash):**
+
+	```bash
+	export BASE_URL="https://abc123.ngrok-free.app"
+	export APP_NAME="Zap"
+	export COMMAND_PREFIX="zap"
+	```
     
 3.  Generate the development manifest:
     
     ```bash
-    npm run generate-manifest
-    
+    pnpm run generate-manifest
     ```
     
 
 This creates `apps/server/slack/manifest.json` with your ngrok URL.
 
-This will generate `apps/server/slack/manifest.json`, replacing `${BASE_URL}` with your actual ngrok URL. This file is used to **create or update** your Slack app.
+This will generate `apps/server/slack/manifest.json`, replacing `env` with the values you provided. This file is used to **create or update** your Slack app.
 
 ### Syncing Changes from Slack Dashboard
 
 1.  Go to your app on [Slack API Dashboard](https://api.slack.com/apps).
-2.  Navigate to: `App Settings → App Manifest → View Manifest`
+2.  Navigate to: `App Settings → App Manifest`
 3.  Copy the updated manifest JSON.
 4.  Open `manifest.template.json` and paste the new JSON into it.
-5.  **Replace all hardcoded URLs** (e.g., ngrok links) with `${BASE_URL}`.
+5.  **Replace all hardcoded URLs , App Name , Command Prefixes**  with `${BASE_URL}, ${APP_NAME}, ${COMMAND_PREFIX}` accordingly .
 
 Now your `manifest.template.json` is in sync with Slack. Future developers can regenerate the manifest with just one command.
 
@@ -90,7 +96,7 @@ Now your `manifest.template.json` is in sync with Slack. Future developers can r
 
 -   **Do not commit `manifest.json`** — it's auto-generated and specific to your local setup.
 -   **Always commit changes to `manifest.template.json`.**
--   **Ensure URLs in `manifest.template.json` use `${BASE_URL}`**, not actual domain links.
+-   **Ensure URLs , App Name , Command Prefixes in `manifest.template.json` use `${BASE_URL}, ${APP_NAME}, ${COMMAND_PREFIX}`**, not actual values.
 
 ## 🔀 Pull Request Guidelines
 
