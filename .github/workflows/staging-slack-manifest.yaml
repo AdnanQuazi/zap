@@ -34,6 +34,9 @@ jobs:
           SLACK_REFRESH_TOKEN: ${{ secrets.SLACK_REFRESH_TOKEN }}
         run: |
           echo "🔁 Refreshing Slack refresh token..."
+          # Use ::add-mask:: to hide sensitive data in logs
+          echo "::add-mask::$SLACK_REFRESH_TOKEN"
+          
           RESPONSE=$(curl -sS -X POST https://slack.com/api/tooling.tokens.rotate \
             -H "Content-Type: application/x-www-form-urlencoded" \
             --data-urlencode "refresh_token=$SLACK_REFRESH_TOKEN")
@@ -43,6 +46,11 @@ jobs:
           if jq -e '.ok == true' slack_token_response.json > /dev/null; then
             NEW_REFRESH_TOKEN=$(jq -r .refresh_token slack_token_response.json)
             NEW_ACCESS_TOKEN=$(jq -r .token slack_token_response.json)
+            
+            # Mask the new tokens to prevent them from showing in logs
+            echo "::add-mask::$NEW_REFRESH_TOKEN"
+            echo "::add-mask::$NEW_ACCESS_TOKEN"
+            
             echo "✅ Slack tokens rotated"
             # Update both tokens in the job environment for subsequent steps
             echo "SLACK_REFRESH_TOKEN=$NEW_REFRESH_TOKEN" >> $GITHUB_ENV
@@ -72,10 +80,13 @@ jobs:
       - name: Update Slack manifest
         id: update_manifest
         env:
-          SLACK_TOKEN: $SLACK_TOKEN
+          SLACK_TOKEN: ${{ env.SLACK_TOKEN }}
           SLACK_APP_ID: ${{ secrets.SLACK_APP_ID }}
         run: |
           echo "📦 Preparing to update Slack manifest..."
+          # Mask the token in logs
+          echo "::add-mask::$SLACK_TOKEN"
+          
           MANIFEST_JSON=$(jq -c . apps/server/slack/manifest.json)
 
           RESPONSE=$(curl -sS -X POST https://slack.com/api/apps.manifest.update \
@@ -89,7 +100,7 @@ jobs:
           echo "$RESPONSE" > response.json
 
           if jq -e '.ok == true' response.json > /dev/null; then
-            echo "✅ Successfully updated Slack manifest for production"
+            echo "✅ Successfully updated Slack manifest"
           else
             echo "❌ Failed to update Slack manifest:"
             jq '.error' response.json
