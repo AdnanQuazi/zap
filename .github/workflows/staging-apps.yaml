@@ -128,7 +128,7 @@ jobs:
 
   deploy_server:
     needs: [detect_changes, apply_migrations, deploy_embedding]
-    if: ${{ needs.detect_changes.outputs.server == 'true' && needs.apply_migrations.result != 'failure' && needs.deploy_embedding.result != 'failure' }}
+    if: ${{ !cancelled() && needs.detect_changes.outputs.server == 'true' && needs.apply_migrations.result != 'failure' && needs.deploy_embedding.result != 'failure' }}
     runs-on: ubuntu-latest
     environment:
       name: 'staging'
@@ -168,7 +168,7 @@ jobs:
 
   deploy_client:
     needs: [detect_changes, deploy_server]
-    if: ${{ needs.detect_changes.outputs.client == 'true' && needs.deploy_server.result != 'failure' }}
+    if: ${{ !cancelled() && needs.detect_changes.outputs.client == 'true' && needs.deploy_server.result != 'failure' }}
     runs-on: ubuntu-latest
     environment: staging
     env:
