@@ -182,4 +182,6 @@ jobs:
           - name: Install Vercel CLI
             run: npm install --global vercel@latest
           - name: Deploy Project Artifacts to Vercel
-            run: vercel deploy --token=${{ secrets.VERCEL_TOKEN }}
+            run: |
+              url="$(vercel deploy --token=${{ secrets.VERCEL_TOKEN }})"
+              vercel alias --token=${{ secrets.VERCEL_TOKEN }} set "$url" zap-staging.prizmalabs.live
