@@ -37,6 +37,7 @@ const handleContextToggleAction = require("./src/handlers/actions/enable-disable
 const scopedSupabaseMiddleware = require("./src/middlewares/scoped-supabse-middleware");
 const botInChannelMiddleware = require("./src/middlewares/bot-in-channel-middleware");
 
+const COMMAND_PREFIX = process.env.COMMAND_PREFIX || "zap";
 
 /**
  * Express middleware configuration
@@ -70,14 +71,14 @@ slackApp.event("member_left_channel", memberLeftChannelHandler); // Bot joined a
  * Slash command handlers
  */
 // /ask command handler with supabase middleware
-slackApp.command("/zap-ask", botInChannelMiddleware ,scopedSupabaseMiddleware, AskCommandHandler);
-slackApp.command("/zap-feedback", feedbackZapHandler);
-slackApp.command("/zap-info", infoHandler);
-slackApp.command("/zap-optin",botInChannelMiddleware, scopedSupabaseMiddleware, optInHandler);
-slackApp.command("/zap-optout",botInChannelMiddleware, scopedSupabaseMiddleware, optOutHandler);
-slackApp.command("/zap-purge",botInChannelMiddleware, scopedSupabaseMiddleware, purgeHandler);
-slackApp.command("/zap-purge-all",botInChannelMiddleware, scopedSupabaseMiddleware, purgeAllHandler);
-slackApp.command("/zap-help", botInChannelMiddleware , zapHelpHandler);
+slackApp.command(`/${COMMAND_PREFIX}-ask`, botInChannelMiddleware ,scopedSupabaseMiddleware, AskCommandHandler);
+slackApp.command(`/${COMMAND_PREFIX}-feedback`, feedbackZapHandler);
+slackApp.command(`/${COMMAND_PREFIX}-info`, infoHandler);
+slackApp.command(`/${COMMAND_PREFIX}-optin`,botInChannelMiddleware, scopedSupabaseMiddleware, optInHandler);
+slackApp.command(`/${COMMAND_PREFIX}-optout`,botInChannelMiddleware, scopedSupabaseMiddleware, optOutHandler);
+slackApp.command(`/${COMMAND_PREFIX}-purge`,botInChannelMiddleware, scopedSupabaseMiddleware, purgeHandler);
+slackApp.command(`/${COMMAND_PREFIX}-purge-all`,botInChannelMiddleware, scopedSupabaseMiddleware, purgeAllHandler);
+slackApp.command(`/${COMMAND_PREFIX}-help`, botInChannelMiddleware , zapHelpHandler);
 
 
 

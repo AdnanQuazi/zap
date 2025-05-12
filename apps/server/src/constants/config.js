@@ -6,48 +6,49 @@ const DEFAULT_LIMIT = 30;
 const DEFAULT_WINDOW_SIZE = 5;
 const FIFTEEN_DAYS_IN_SECONDS = 15 * 24 * 60 * 60;
 const CURRENT_BOT_VERSION = "1.0.0";
+const COMMAND_PREFIX = process.env.COMMAND_PREFIX || "zap";
 const COMMAND_LIST = [
   {
-    command: "/zap-ask",
+    command: `/${COMMAND_PREFIX}-ask`,
     shortDescription:
       "Ask Zap a question based on past conversations and documents",
-    usageHint: "/zap-ask [question]",
+    usageHint: `/${COMMAND_PREFIX}-ask [question]`,
   },
   {
-    command: "/zap-feedback",
+    command: `/${COMMAND_PREFIX}-feedback`,
     shortDescription: "Submit feedback about Zap",
-    usageHint: "/zap-feedback [feedback]",
+    usageHint: `/${COMMAND_PREFIX}-feedback [feedback]`,
   },
   {
-    command: "/zap-optin",
+    command: `/${COMMAND_PREFIX}-optin`,
     shortDescription: "Allow Zap to store your conversations and documents",
-    usageHint: "/zap-optin",
+    usageHint: `/${COMMAND_PREFIX}-optin`,
   },
   {
-    command: "/zap-optout",
+    command: `/${COMMAND_PREFIX}-optout`,
     shortDescription: "Stop Zap from storing your conversations and documents",
-    usageHint: "/zap-optout",
+    usageHint: `/${COMMAND_PREFIX}-optout`,
   },
   {
-    command: "/zap-info",
+    command: `/${COMMAND_PREFIX}-info`,
     shortDescription: "View bot installation details",
-    usageHint: "/zap-info",
+    usageHint: `/${COMMAND_PREFIX}-info`,
   },
   {
-    command: "/zap-purge",
+    command: `/${COMMAND_PREFIX}-purge`,
     shortDescription: "Delete all your personal data stored by Zap",
-    usageHint: "/zap-purge",
+    usageHint: `/${COMMAND_PREFIX}-purge`,
   },
   {
-    command: "/zap-purge-all",
+    command: `/${COMMAND_PREFIX}-purge-all`,
     shortDescription: "Admin only: Delete all user data stored by Zap",
-    usageHint: "/zap-purge-all",
+    usageHint: `/${COMMAND_PREFIX}-purge-all`,
   },
   {
-    command: "/zap-help",
+    command: `/${COMMAND_PREFIX}-help`,
     shortDescription:
       "Display all available Zap commands with usage instructions",
-    usageHint: "/zap-help",
+    usageHint: `/${COMMAND_PREFIX}-help`,
   },
 ];
 const PROCESSING_MESSAGES = [
@@ -66,13 +67,13 @@ const PROCESSING_MESSAGES = [
   "Processing... ⏳",
 ];
 const WELCOME_MESSAGE = {
-  text: "Zap has entered! ⚡",
+  text: `${process.env.APP_NAME} has entered! ⚡`,
   blocks: [
     {
       type: "header",
       text: {
         type: "plain_text",
-        text: "Zap has entered! ⚡",
+        text: `${process.env.APP_NAME} has entered! ⚡`,
         emoji: true,
       },
     },
@@ -80,7 +81,7 @@ const WELCOME_MESSAGE = {
       type: "section",
       text: {
         type: "mrkdwn",
-        text: "*Zap* is your AI‑powered helper in this workspace. Ask questions about this channel’s history, attached files, or anything else—I’ve got you covered!",
+        text: `*${process.APP_NAME}* is your AI‑powered helper in this workspace. Ask questions about this channel’s history, attached files, or anything else—I’ve got you covered!`,
       },
     },
     {
@@ -99,15 +100,15 @@ const WELCOME_MESSAGE = {
         },
         {
           type: "mrkdwn",
-          text: "`/ask [your question]`\nAsk anything using this channel’s history and attached files.",
+          text: `\`/${process.env.COMMAND_PREFIX}-ask [your question]\`\nAsk anything using this channel’s history and attached files.`,
         },
         {
           type: "mrkdwn",
-          text: "`/help`\nShow the list of commands.",
+          text: `\`/${process.env.COMMAND_PREFIX}-help\`\nShow the list of commands.`,
         },
         {
           type: "mrkdwn",
-          text: "`/feedback`\nSend feedback.",
+          text: `\`/${process.env.COMMAND_PREFIX}-feedback\`\nSend feedback.`,
         },
       ],
     },
@@ -121,7 +122,7 @@ const WELCOME_MESSAGE = {
             text: "📄 Privacy Policy",
             emoji: true,
           },
-          url: "https://your-docs.example.com/zap",
+          url: `${process.env.WEBSITE_BASE_URL}/privacy-policy`,
           action_id: "view_docs",
         },
       ],
@@ -203,14 +204,14 @@ const OPT_IN_MESSAGE = {
       type: "section",
       text: {
         type: "mrkdwn",
-        text: "Zap will now access your workspace data (including *messages*, *threads*, and *files*) to enhance its responses.",
+        text: `${process.env.APP_NAME} will now access your workspace data (including *messages*, *threads*, and *files*) to enhance its responses.`,
       },
     },
     {
       type: "section",
       text: {
         type: "mrkdwn",
-        text: "By continuing, you agree to our <https://your-privacy-policy-link.com|Privacy Policy>.\nYou can opt out at any time using the `/opt-out` command.",
+        text: `By continuing, you agree to our <${process.env.WEBSITE_BASE_URL}/privacy-policy|Privacy Policy>.\nYou can opt out at any time using the \`/opt-out\` command.`,
       },
     },
   ],
@@ -230,7 +231,7 @@ const OPT_OUT_MESSAGE = {
       type: "section",
       text: {
         type: "mrkdwn",
-        text: "Zap will no longer access your data in this workspace (including *messages*, *threads*, and *files*). Additionally, *all your previous history has been deleted*.",
+        text: `${process.env.APP_NAME} will no longer access your data in this workspace (including *messages*, *threads*, and *files*). Additionally, *all your previous history has been deleted*.`,
       },
     },
     {
@@ -307,7 +308,7 @@ ${data.enable_smart_context ? "🔓 *Enabled*" : "🔐 *Disabled*"}`,
               emoji: true,
             },
             style: "primary",
-            url: "https://your-docs.example.com/zap",
+            url: process.env.WEBSITE_BASE_URL,
             action_id: "update_app",
           },
         ],
@@ -325,7 +326,7 @@ function HELP_BLOCKS(commands = COMMAND_LIST) {
       "type": "header",
       "text": {
         "type": "plain_text",
-        "text": `🧩 Zap Commands`,
+        "text": `🧩 ${process.env.APP_NAME} Commands`,
         "emoji": true
       }
     },
@@ -333,7 +334,7 @@ function HELP_BLOCKS(commands = COMMAND_LIST) {
       "type": "section",
       "text": {
         "type": "mrkdwn",
-        "text": `Here are all the commands you can use with Zap:`
+        "text": `Here are all the commands you can use with ${process.env.APP_NAME}:`
       }
     },
     {
@@ -362,13 +363,13 @@ function HELP_BLOCKS(commands = COMMAND_LIST) {
       "elements": [
         {
           "type": "mrkdwn",
-          "text": `✨ Type \`/zap-help\` anytime to see this menu again`
+          "text": `✨ Type \`/${process.env.COMMAND_PREFIX}-help\` anytime to see this menu again`
         }
       ]
     }
   );
 
-  return { text : "🧩 Zap Commands" , blocks };
+  return { text : `🧩 ${process.env.APP_NAME} Commands` , blocks };
 }
 
 module.exports = {
