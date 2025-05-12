@@ -1,12 +1,17 @@
-"use client"
+"use client";
 
-import { useState} from "react"
-import Link from "next/link"
-import { motion } from "framer-motion"
-import {ExternalLink, HelpCircle, FileText, MessageSquare } from "lucide-react"
+import { useState } from "react";
+import Link from "next/link";
+import { motion } from "framer-motion";
+import {
+  ExternalLink,
+  HelpCircle,
+  FileText,
+  MessageSquare,
+} from "lucide-react";
 
 export default function InstallationSuccessPage() {
-  const [animationComplete] = useState(false)
+  const [animationComplete] = useState(false);
   // useEffect(() => {
   //   // Trigger success animation after a short delay
   //   const timer = setTimeout(() => {
@@ -65,10 +70,6 @@ export default function InstallationSuccessPage() {
               }}
               className="absolute inset-0 flex items-center justify-center"
             >
-              <div className="w-24 h-24 rounded-full bg-[#000000] flex items-center justify-center">
-                <img src="/logo.jpg" alt="zap-logo" className="w-24 h-24 rounded-full" />
-              </div>
-
               {/* Pulse effect */}
               <motion.div
                 initial={{ scale: 0.8, opacity: 0.8 }}
@@ -86,6 +87,13 @@ export default function InstallationSuccessPage() {
                 className="absolute inset-0 rounded-full border-2 border-[#fef800]"
               />
             </motion.div>
+            <div className="w-32 h-32 rounded-full bg-[#000000] flex items-center justify-center">
+              <img
+                src="/logo.jpg"
+                alt="zap-logo"
+                className="w-32 h-32 rounded-full"
+              />
+            </div>
           </motion.div>
         </div>
 
@@ -96,9 +104,12 @@ export default function InstallationSuccessPage() {
           transition={{ duration: 0.6, delay: 0.3 }}
           className="text-center mb-12"
         >
-          <h1 className="font-['Russo_One'] text-4xl md:text-5xl mb-4">Installation Complete!</h1>
+          <h1 className="font-['Russo_One'] text-4xl md:text-5xl mb-4">
+            Installation Complete!
+          </h1>
           <p className="text-white/80 text-xl max-w-lg mx-auto">
-            Zap is now successfully installed in your Slack workspace and ready to use.
+            Zap is now successfully installed in your Slack workspace and ready
+            to use.
           </p>
         </motion.div>
 
@@ -109,24 +120,29 @@ export default function InstallationSuccessPage() {
           transition={{ duration: 0.6, delay: 0.5 }}
           className="w-full mb-16"
         >
-          <h2 className="font-['Russo_One'] text-2xl mb-6 text-center">Next Steps</h2>
+          <h2 className="font-['Russo_One'] text-2xl mb-6 text-center">
+            Next Steps
+          </h2>
 
           <div className="grid md:grid-cols-3 gap-6">
             {[
               {
                 icon: <MessageSquare className="w-8 h-8 text-[#fef800]" />,
                 title: "Invite Zap to Channels",
-                description: "Type @Zap in any channel where you want to use the assistant.",
+                description:
+                  "Type @Zap in any channel where you want to use the assistant.",
               },
               {
                 icon: <HelpCircle className="w-8 h-8 text-[#fef800]" />,
                 title: "See Available Commands",
-                description: "Type /zap-help in Slack to see all available commands.",
+                description:
+                  "Type /zap-help in Slack to see all available commands.",
               },
               {
                 icon: <FileText className="w-8 h-8 text-[#fef800]" />,
                 title: "Ask Your First Question",
-                description: "Try asking Zap a question with /zap-ask [question].",
+                description:
+                  "Try asking Zap a question with /zap-ask [question].",
               },
             ].map((step, index) => (
               <motion.div
@@ -140,7 +156,9 @@ export default function InstallationSuccessPage() {
                   <div className="w-16 h-16 rounded-full bg-[#fef800]/10 flex items-center justify-center mb-4">
                     {step.icon}
                   </div>
-                  <h3 className="font-['Russo_One'] text-xl mb-2">{step.title}</h3>
+                  <h3 className="font-['Russo_One'] text-xl mb-2">
+                    {step.title}
+                  </h3>
                   <p className="text-white/70">{step.description}</p>
                 </div>
               </motion.div>
@@ -155,13 +173,15 @@ export default function InstallationSuccessPage() {
           transition={{ duration: 0.6, delay: 0.8 }}
           className="w-full mb-16"
         >
-          <h2 className="font-['Russo_One'] text-2xl mb-6 text-center">Resources</h2>
+          <h2 className="font-['Russo_One'] text-2xl mb-6 text-center">
+            Resources
+          </h2>
 
           <div className="flex flex-wrap justify-center gap-4">
             {[
               { label: "Documentation", href: "/docs" },
               { label: "FAQ", href: "/faq" },
-              { label: "Support", href: "/support" }
+              { label: "Support", href: "/support" },
             ].map((resource, index) => (
               <Link
                 key={index}
@@ -198,7 +218,7 @@ export default function InstallationSuccessPage() {
         © {new Date().getFullYear()} Zap. All rights reserved.
       </div>
     </main>
-  )
+  );
 }
 
 function WaveAnimation() {
@@ -271,9 +291,10 @@ function WaveAnimation() {
       <div
         className="absolute bottom-0 left-0 right-0 h-full"
         style={{
-          background: "linear-gradient(to top, rgba(18, 18, 18, 0.8) 0%, rgba(18, 18, 18, 0) 100%)",
+          background:
+            "linear-gradient(to top, rgba(18, 18, 18, 0.8) 0%, rgba(18, 18, 18, 0) 100%)",
         }}
       />
     </div>
-  )
+  );
 }

@@ -43,8 +43,6 @@ const botInChannelMiddleware = require("./src/middlewares/bot-in-channel-middlew
  */
 expressApp.use(express.urlencoded({ extended: true }));
 expressApp.use(express.json());
-expressApp.set("view engine", "ejs");
-expressApp.set("views", path.resolve(__dirname, "views"));
 
 // Mount OAuth routes
 expressApp.use("/slack", oauthRouter);
