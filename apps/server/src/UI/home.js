@@ -4,7 +4,7 @@ function buildHome(enabled, options = {}) {
     {
       type: "image",
       image_url:
-        "https://zwddqklqugyvwnnfpqpk.supabase.co/storage/v1/object/public/assets/slack/zap-banner.jpg",
+        "https://zwddqklqugyvwnnfpqpk.supabase.co/storage/v1/object/public/assets/slack/zap-banner-white.jpg",
       alt_text: "Zap Banner",
     },
 
@@ -169,19 +169,10 @@ function buildHome(enabled, options = {}) {
           type: "button",
           text: {
             type: "plain_text",
-            text: "💬 View Commands",
-            emoji: true,
-          },
-          action_id: "open_commands",
-        },
-        {
-          type: "button",
-          text: {
-            type: "plain_text",
             text: "🌐 Visit Website",
             emoji: true,
           },
-          url: "https://yourwebsite.com",
+          url: process.env.WEBSITE_BASE_URL,
           action_id: "visit_website",
         },
         {
@@ -191,7 +182,7 @@ function buildHome(enabled, options = {}) {
             text: "📄 Privacy Policy",
             emoji: true,
           },
-          url: "https://yourwebsite.com/privacy",
+          url: `${process.env.WEBSITE_BASE_URL}/privacy-policy`,
           action_id: "view_privacy_policy",
         },
       ],
