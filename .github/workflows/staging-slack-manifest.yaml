@@ -23,7 +23,7 @@ jobs:
       - name: Render manifest.json
         env:
           BASE_URL: ${{ secrets.BASE_URL }}
-          APP_NAME: "Zap-Staging"
+          APP_NAME: "Zap Staging"
           COMMAND_PREFIX: "zap-staging"
         run: |
           node apps/server/scripts/generate-manifest.js
