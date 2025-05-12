@@ -86,7 +86,7 @@ jobs:
 
   apply_migrations:
     needs: detect_changes
-    if: ${{ github.event_name == 'workflow_dispatch' && github.event.inputs.apply_migrations == 'true' || github.event_name != 'workflow_dispatch' && needs.detect_changes.outputs.supabase_migrations == 'true' }}
+    if: ${{ (github.event_name == 'workflow_dispatch' && github.event.inputs.apply_migrations) || (github.event_name != 'workflow_dispatch' && needs.detect_changes.outputs.supabase_migrations == 'true') }}
     runs-on: ubuntu-latest
     environment: staging
     env:
@@ -107,7 +107,7 @@ jobs:
 
   deploy_embedding:
     needs: detect_changes
-    if: ${{ github.event_name == 'workflow_dispatch' && github.event.inputs.deploy_embedding == 'true' || github.event_name != 'workflow_dispatch' && needs.detect_changes.outputs.embedding == 'true'}}
+    if: ${{ (github.event_name == 'workflow_dispatch' && github.event.inputs.deploy_embedding) || (github.event_name != 'workflow_dispatch' && needs.detect_changes.outputs.embedding == 'true') }}
     runs-on: ubuntu-latest
     environment: staging
     env:
@@ -128,7 +128,7 @@ jobs:
 
   deploy_server:
     needs: [detect_changes, apply_migrations, deploy_embedding]
-    if: ${{ (github.event_name == 'workflow_dispatch' && github.event.inputs.deploy_server == 'true') || (github.event_name != 'workflow_dispatch' && needs.detect_changes.outputs.server == 'true' && needs.apply_migrations.conclusion != 'failure' && needs.deploy_embedding.conclusion != 'failure') }}
+    if: ${{ (github.event_name == 'workflow_dispatch' && github.event.inputs.deploy_server) || (github.event_name != 'workflow_dispatch' && needs.detect_changes.outputs.server == 'true' && needs.apply_migrations.conclusion != 'failure' && needs.deploy_embedding.conclusion != 'failure') }}
     runs-on: ubuntu-latest
     environment:
       name: 'staging'
@@ -168,7 +168,7 @@ jobs:
 
   deploy_client:
     needs: [detect_changes, deploy_server]
-    if: ${{ (github.event_name == 'workflow_dispatch' && github.event.inputs.deploy_client == 'true') || (github.event_name != 'workflow_dispatch' && needs.detect_changes.outputs.client == 'true' && needs.deploy_server.conclusion != 'failure') }}
+    if: ${{ (github.event_name == 'workflow_dispatch' && github.event.inputs.deploy_client) || (github.event_name != 'workflow_dispatch' && needs.detect_changes.outputs.client == 'true' && needs.deploy_server.conclusion != 'failure') }}
     runs-on: ubuntu-latest
     environment: staging
     env:
