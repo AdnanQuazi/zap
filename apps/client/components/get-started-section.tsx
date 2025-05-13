@@ -5,6 +5,7 @@ import { motion, useInView } from "framer-motion";
 import { Button } from "@/components/ui/button";
 import { PlusCircle, Shield, MessageSquare, ArrowRight } from "lucide-react";
 import { EMAIL } from "@/app/constants";
+import { redirectToInstallation } from "@/lib/redirectToInstall";
 
 export default function GetStartedSection() {
   const ref = useRef(null);
@@ -160,7 +161,7 @@ export default function GetStartedSection() {
             transition={{ duration: 0.6, delay: 0.8 }}
             className="mt-16 text-center"
           >
-            <Button className="bg-[#fef800] text-[#121212] hover:bg-[#fef800]/90 font-medium text-lg px-8 py-6 relative overflow-hidden group">
+            <Button onClick={redirectToInstallation} className="bg-[#fef800] text-[#121212] hover:bg-[#fef800]/90 font-medium text-lg px-8 py-6 relative overflow-hidden group">
               <span className="relative z-10">Add to Slack</span>
               <motion.span
                 className="absolute inset-0 bg-[#fef800]/50 opacity-0 group-hover:opacity-100 transition-opacity"
