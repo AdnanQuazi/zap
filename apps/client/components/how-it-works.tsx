@@ -119,11 +119,11 @@ export default function SeeItInAction() {
         "Analyze document in your knowledge base",
     },
     {
-      command: "/ask summarize conversation of past week",
+      command: "/zap-ask summarize conversation of past week",
       description: "Get a concise summary of a conversation",
     },
     {
-      command: "/ask compare [item1] and [item2]",
+      command: "/zap-ask compare [item1] and [item2]",
       description: "Compare two products, or documents",
     },
   ];

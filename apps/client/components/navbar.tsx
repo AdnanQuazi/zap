@@ -27,8 +27,8 @@ export default function Navbar() {
     >
       <div className="container mx-auto px-4 flex justify-between items-center">
         <Link href="/" className="flex items-center gap-2">
-          <div className="w-10 h-10">
-            <img src="/logo.png" alt="Logo" className="h-10 w-10" />
+          <div className="w-15 h-15 flex items-center justify-center">
+            <img src="/logo.png" alt="Logo" className="h-12 w-12" />
           </div>
           <span className="font-['Russo_One'] text-3xl text-white"></span>
         </Link>
