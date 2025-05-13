@@ -1,6 +1,5 @@
 
 async function batchStoreMessages({supabase, messages, batchSize = 500}) {
-    console.log(messages)
     try {
         for (let i = 0; i < messages.length; i += batchSize) {
             const batch = messages.slice(i, i + batchSize).map(({ blocks, ...msg }) => msg);

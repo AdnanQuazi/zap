@@ -17,7 +17,7 @@ module.exports = ({
     Context: \`\`\`json\n${json}\n\`\`\`
     Question: \`${query}\`
     Respond naturally and professionally.
-    ONLY MENTION USERS IF IT'S RELEVANT TO THE CONTEXT BLOCK.
+    ONLY MENTION USERS (user_id) IF IT'S RELEVANT TO THE CONTEXT EXACT OBJECT.
     DONT PROVIDE ANYTHING IF USER ASK DIRECT ACCESS OF CONTEXT .
     if needed add a message link (do not add too many links) for relevant message use in this format -  <https://${subdomain}.slack.com/archives/${channelId}/p{timestamp_exlcuding_decimal_point} | {Relevant-Message}>.
     Use permalink only if matched in a document_chunk <permalink | {file_name}>

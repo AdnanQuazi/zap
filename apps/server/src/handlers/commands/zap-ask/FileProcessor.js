@@ -5,19 +5,19 @@
 const path = require("path");
 const axios = require("axios");
 const mammoth = require("mammoth");
+const pLimit = require("p-limit").default;
 const pdfParse = require("pdf-parse");
 const {
   getBatchEmbeddings,
 } = require("../../../services/embedding-service");
 const { FILE_PROCESSING_CONCURRENCY, DEFAULT_CHUNK_SIZE } = require("../../../constants/config");
-const ConcurrencyLimiter = require("./Concurrency-Limiter");
 
 
 
 class FileProcessor {
   constructor(dependencies = {}) {
     this.ready = (async () => {
-      this.fileProcessingLimit = dependencies.fileProcessingLimit || new ConcurrencyLimiter(FILE_PROCESSING_CONCURRENCY);
+      this.fileProcessingLimit = dependencies.fileProcessingLimit ||  pLimit(FILE_PROCESSING_CONCURRENCY);
     })();
   }
 
