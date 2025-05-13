@@ -1,0 +1,112 @@
+{
+    "display_information": {
+        "name": "${APP_NAME}"
+    },
+    "features": {
+        "app_home": {
+            "home_tab_enabled": true,
+            "messages_tab_enabled": false,
+            "messages_tab_read_only_enabled": true
+        },
+        "bot_user": {
+            "display_name": "${APP_NAME}",
+            "always_online": true
+        },
+        "slash_commands": [
+            {
+                "command": "/${COMMAND_PREFIX}-ask",
+                "url": "${BASE_URL}/slack/events",
+                "description": "Ask Zap a question based on past conversations and documents.",
+                "usage_hint": "[question]",
+                "should_escape": false
+            },
+            {
+                "command": "/${COMMAND_PREFIX}-feedback",
+                "url": "${BASE_URL}/slack/events",
+                "description": "Submit feedback about Zap.",
+                "usage_hint": "[feedback]",
+                "should_escape": false
+            },
+            {
+                "command": "/${COMMAND_PREFIX}-help",
+                "url": "${BASE_URL}/slack/events",
+                "description": "Display all available Zap commands with usage instructions.",
+                "should_escape": false
+            },
+            {
+                "command": "/${COMMAND_PREFIX}-info",
+                "url": "${BASE_URL}/slack/events",
+                "description": "View bot installation details.",
+                "should_escape": false
+            },
+            {
+                "command": "/${COMMAND_PREFIX}-optin",
+                "url": "${BASE_URL}/slack/events",
+                "description": "Allow Zap to store your conversations and documents.",
+                "should_escape": false
+            },
+            {
+                "command": "/${COMMAND_PREFIX}-optout",
+                "url": "${BASE_URL}/slack/events",
+                "description": "Stop Zap from storing your conversations and documents.",
+                "should_escape": false
+            },
+            {
+                "command": "/${COMMAND_PREFIX}-purge-all",
+                "url": "${BASE_URL}/slack/events",
+                "description": "Admin only: Delete all user data stored by Zap.",
+                "should_escape": false
+            },
+            {
+                "command": "/${COMMAND_PREFIX}-purge",
+                "url": "${BASE_URL}/slack/events",
+                "description": "Delete all your personal data stored by Zap.",
+                "should_escape": false
+            }
+        ]
+    },
+    "oauth_config": {
+        "redirect_urls": [
+            "${BASE_URL}/slack/oauth/callback"
+        ],
+        "scopes": {
+            "user": [
+                "channels:read",
+                "groups:read"
+            ],
+            "bot": [
+                "app_mentions:read",
+                "channels:history",
+                "channels:read",
+                "chat:write",
+                "commands",
+                "files:read",
+                "groups:history",
+                "groups:read",
+                "users:read",
+                "mpim:read"
+            ]
+        }
+    },
+    "settings": {
+        "event_subscriptions": {
+            "request_url": "${BASE_URL}/slack/events",
+            "user_events": [
+                "member_left_channel"
+            ],
+            "bot_events": [
+                "app_home_opened",
+                "app_mention",
+                "app_uninstalled",
+                "member_joined_channel"
+            ]
+        },
+        "interactivity": {
+            "is_enabled": true,
+            "request_url": "${BASE_URL}/slack/events"
+        },
+        "org_deploy_enabled": false,
+        "socket_mode_enabled": false,
+        "token_rotation_enabled": false
+    }
+}

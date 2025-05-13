@@ -1,0 +1,69 @@
+# Node and PNPM
+**/node_modules/
+/.pnpm-store/
+/.npm/
+
+# Python Virtual Envs & Caches
+**/.venv/
+**/venv/
+**/__pycache__/
+**/.pytest_cache/
+**/.tox/
+**/.coverage
+
+# Apps: Next.js
+/apps/client/.next/
+/apps/client/out/
+/apps/client/build/
+/apps/client/.swc/
+/apps/client/next-env.d.ts
+
+# Apps: server build
+/apps/server/dist/
+/apps/server/build/
+/apps/server/coverage/
+
+# Services: Python artifacts
+/services/embedding-service/*.py[cod]
+/services/embedding-service/*.so
+/services/embedding-service/.Python
+/services/embedding-service/env/
+/services/embedding-service/build/
+/services/embedding-service/dist/
+/services/embedding-service/*.egg-info/
+
+
+# Services: cache/backups
+**/services/embedding-service/~*/
+**/services/embedding-service/~*
+
+
+# Supabase local dev
+/supabase/.env
+/supabase/.supabase/
+/supabase/.temp/
+/supabase/.branches/
+
+# IDEs & Editors
+.vscode/*
+!.vscode/settings.json
+!.vscode/tasks.json
+!.vscode/launch.json
+!.vscode/extensions.json
+.idea/
+*.suo
+*.ntvs*
+*.njsproj
+*.sln
+.DS_Store
+Thumbs.db
+
+# Logs
+*.log
+npm-debug.log*
+yarn-debug.log*
+.pnpm-debug.log*
+
+# Misc
+.env
+.turbo/

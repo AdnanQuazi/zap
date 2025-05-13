@@ -1,0 +1,29 @@
+# Env files
+.env
+.env.local
+.env.development
+.env.production
+
+# Dependency folders (these are rebuilt on Vercel)
+node_modules/
+.pnpm-store/
+
+# Local development scripts/tools
+scripts/
+tests/
+__tests__/
+coverage/
+*.test.js
+*.spec.js
+
+# Docs and other dev-only files
+README.md
+*.md
+.vscode/
+*.log
+
+# OS/editor junk
+.DS_Store
+Thumbs.db
+
+.turbo

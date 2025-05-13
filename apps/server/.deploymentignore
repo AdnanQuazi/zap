@@ -1,0 +1,23 @@
+# Node.js
+npm-debug.log
+.pnpm-debug.log
+
+# Test files
+__tests__/
+coverage/
+*.test.js
+
+# Local env and config files
+.env
+.env.local
+.env.development
+.vscode
+.DS_Store
+
+# Docs and extras
+README.md
+.vercelignore
+
+.turbo
+
+slack

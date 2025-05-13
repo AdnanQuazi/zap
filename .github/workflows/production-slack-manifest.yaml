@@ -1,0 +1,108 @@
+name: deploy-slack-manifest-prod
+
+on:
+  push:
+    branches:
+      - production
+    paths:
+      - 'apps/server/slack/manifest.template.json'
+  workflow_dispatch:
+
+jobs:
+  update-slack-manifest:
+    name: Update Slack Manifest
+    runs-on: ubuntu-latest
+    environment: production
+    permissions:
+      contents: read
+      actions: write
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v4
+
+      - name: Render manifest.json
+        env:
+          BASE_URL: ${{ secrets.BASE_URL }}
+          APP_NAME: "Zap"
+          COMMAND_PREFIX: "zap"
+        run: |
+          node apps/server/scripts/generate-manifest.js
+
+      - name: Refresh Slack Token
+        id: refresh_token
+        env:
+          SLACK_REFRESH_TOKEN: ${{ secrets.SLACK_REFRESH_TOKEN }}
+        run: |
+          echo "🔁 Refreshing Slack refresh token..."
+          # Use ::add-mask:: to hide sensitive data in logs
+          echo "::add-mask::$SLACK_REFRESH_TOKEN"
+          
+          RESPONSE=$(curl -sS -X POST https://slack.com/api/tooling.tokens.rotate \
+            -H "Content-Type: application/x-www-form-urlencoded" \
+            --data-urlencode "refresh_token=$SLACK_REFRESH_TOKEN")
+
+          echo "$RESPONSE" > slack_token_response.json
+
+          if jq -e '.ok == true' slack_token_response.json > /dev/null; then
+            NEW_REFRESH_TOKEN=$(jq -r .refresh_token slack_token_response.json)
+            NEW_ACCESS_TOKEN=$(jq -r .token slack_token_response.json)
+            
+            # Mask the new tokens to prevent them from showing in logs
+            echo "::add-mask::$NEW_REFRESH_TOKEN"
+            echo "::add-mask::$NEW_ACCESS_TOKEN"
+            
+            echo "✅ Slack tokens rotated"
+            # Update both tokens in the job environment for subsequent steps
+            echo "SLACK_REFRESH_TOKEN=$NEW_REFRESH_TOKEN" >> $GITHUB_ENV
+            echo "SLACK_TOKEN=$NEW_ACCESS_TOKEN" >> $GITHUB_ENV
+            echo "new_refresh_token=$NEW_REFRESH_TOKEN" >> $GITHUB_OUTPUT
+          else
+            echo "❌ Failed to rotate Slack token:"
+            jq '.error' slack_token_response.json
+            exit 1
+          fi
+
+      - name: Install GitHub CLI
+        run: |
+          sudo apt-get update
+          sudo apt-get install -y gh
+
+      - name: Authenticate GitHub CLI
+        run: gh auth login --with-token <<< "${{ secrets.PAT_FOR_SECRETS }}"
+
+      - name: Update SLACK_REFRESH_TOKEN
+        run: |
+          gh secret set SLACK_REFRESH_TOKEN \
+            --repo ${{ github.repository }} \
+            --env production \
+            --body "${{ steps.refresh_token.outputs.new_refresh_token }}"
+
+      - name: Update Slack manifest
+        id: update_manifest
+        env:
+          SLACK_TOKEN: ${{ env.SLACK_TOKEN }}
+          SLACK_APP_ID: ${{ secrets.SLACK_APP_ID }}
+        run: |
+          echo "📦 Preparing to update Slack manifest..."
+          # Mask the token in logs
+          echo "::add-mask::$SLACK_TOKEN"
+          
+          MANIFEST_JSON=$(jq -c . apps/server/slack/manifest.json)
+
+          RESPONSE=$(curl -sS -X POST https://slack.com/api/apps.manifest.update \
+            -H "Authorization: Bearer $SLACK_TOKEN" \
+            -H "Content-Type: application/json" \
+            --data '{
+              "app_id": "'"$SLACK_APP_ID"'",
+              "manifest": '"$MANIFEST_JSON"'
+            }')
+
+          echo "$RESPONSE" > response.json
+
+          if jq -e '.ok == true' response.json > /dev/null; then
+            echo "✅ Successfully updated Slack manifest"
+          else
+            echo "❌ Failed to update Slack manifest:"
+            jq '.error' response.json
+            exit 1
+          fi

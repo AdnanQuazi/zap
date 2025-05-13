@@ -1,0 +1,185 @@
+name: deploy-apps-and-services-prod
+
+on:
+  push:
+    branches: [main]
+  workflow_dispatch:
+    inputs:
+      deploy_client:
+        description: 'Deploy client to production'
+        type: boolean
+        default: 'false'
+      deploy_server:
+        description: 'Deploy server to production'
+        type: boolean
+        default: 'false'
+      deploy_embedding:
+        description: 'Deploy embedding service to production'
+        type: boolean
+        default: 'false'
+      apply_migrations:
+        description: 'Apply Supabase migrations to production'
+        type: boolean
+        default: 'false'
+
+env:
+  NODE_VERSION: '20'
+  PYTHON_VERSION: '3.11.9'
+  SUPABASE_CLI_VERSION: '2.22.6'
+  MODAL_VERSION: '0.74.24'
+
+jobs:
+  detect_changes:
+    runs-on: ubuntu-latest
+    outputs:
+      client: ${{ steps.set_outputs.outputs.client }}
+      server: ${{ steps.set_outputs.outputs.server }}
+      embedding: ${{ steps.set_outputs.outputs.embedding }}
+      supabase_migrations: ${{ steps.set_outputs.outputs.supabase_migrations }}
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          fetch-depth: 0
+      - name: Determine commit range
+        id: commits
+        if: github.event_name != 'workflow_dispatch'
+        run: |
+          if [[ "${{ github.event_name }}" == "pull_request" ]]; then
+            echo "base=${{ github.event.pull_request.base.sha }}" >> $GITHUB_OUTPUT
+            echo "head=${{ github.event.pull_request.head.sha }}" >> $GITHUB_OUTPUT
+          else
+            echo "base=${{ github.event.before }}" >> $GITHUB_OUTPUT
+            echo "head=${{ github.event.after }}" >> $GITHUB_OUTPUT
+          fi
+      - name: Filter for changed paths
+        id: filter
+        if: github.event_name != 'workflow_dispatch'
+        uses: dorny/paths-filter@v2
+        with:
+          base: ${{ steps.commits.outputs.base }}
+          ref: ${{ steps.commits.outputs.head }}
+          filters: |
+            client:
+              - 'apps/client/**'
+            server:
+              - 'apps/server/**'
+            embedding:
+              - 'services/embedding-service/**'
+            migrations:
+              - 'supabase/**'
+      - name: Set outputs
+        id: set_outputs
+        run: |
+          if [ "${{ github.event_name }}" = "workflow_dispatch" ]; then
+            # For manual trigger, force all jobs to run
+            echo "client=${{ github.event.inputs.deploy_client }}" >> $GITHUB_OUTPUT
+            echo "server=${{ github.event.inputs.deploy_server }}" >> $GITHUB_OUTPUT
+            echo "embedding=${{ github.event.inputs.deploy_embedding }}" >> $GITHUB_OUTPUT
+            echo "supabase_migrations=${{ github.event.inputs.apply_migrations }}" >> $GITHUB_OUTPUT
+          else
+            # For automatic trigger, use filter outputs based on changes
+            echo "client=${{ steps.filter.outputs.client }}" >> $GITHUB_OUTPUT
+            echo "server=${{ steps.filter.outputs.server }}" >> $GITHUB_OUTPUT
+            echo "embedding=${{ steps.filter.outputs.embedding }}" >> $GITHUB_OUTPUT
+            echo "supabase_migrations=${{ steps.filter.outputs.migrations }}" >> $GITHUB_OUTPUT
+          fi
+
+  apply_migrations:
+    needs: detect_changes
+    if: needs.detect_changes.outputs.supabase_migrations == 'true'
+    runs-on: ubuntu-latest
+    environment: production
+    env:
+      SUPABASE_ACCESS_TOKEN: ${{ secrets.SUPABASE_ACCESS_TOKEN }}
+      SUPABASE_DB_PASSWORD: ${{ secrets.SUPABASE_DB_PASSWORD }}
+      SUPABASE_PROJECT_ID: ${{ secrets.SUPABASE_PROJECT_ID }}
+    steps:
+      - uses: actions/checkout@v4
+      - uses: supabase/setup-cli@v1
+        with:
+          version: ${{ env.SUPABASE_CLI_VERSION }}
+      - name: Link to production project
+        run: supabase link --project-ref $SUPABASE_PROJECT_ID --password $SUPABASE_DB_PASSWORD
+      - name: Dry-run migrations
+        run: supabase db push --dry-run --password $SUPABASE_DB_PASSWORD
+      - name: Apply migrations
+        run: supabase db push --password $SUPABASE_DB_PASSWORD
+
+  deploy_embedding:
+    needs: detect_changes
+    if: needs.detect_changes.outputs.embedding == 'true'
+    runs-on: ubuntu-latest
+    environment: production
+    env:
+      MODAL_TOKEN_ID: ${{ secrets.MODAL_TOKEN_ID }}
+      MODAL_TOKEN_SECRET: ${{ secrets.MODAL_TOKEN_SECRET }}
+    defaults:
+      run:
+        working-directory: ./services/embedding-service
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-python@v5
+        with:
+          python-version: ${{ env.PYTHON_VERSION }}
+      - name: Install Modal
+        run: pip install modal==${{ env.MODAL_VERSION }}
+      - name: Deploy to Modal
+        run: modal deploy embedding_service.py -e main
+
+  deploy_server:
+    needs: [detect_changes, apply_migrations, deploy_embedding]
+    if: ${{ !cancelled() && needs.detect_changes.outputs.server == 'true' && needs.apply_migrations.result != 'failure' && needs.deploy_embedding.result != 'failure' }}
+    runs-on: ubuntu-latest
+    environment:
+      name: 'production'
+      url: ${{ steps.deploy-to-webapp.outputs.webapp-url }}
+    permissions:
+      id-token: write #This is required for requesting the JWT
+      contents: read #This is required for actions/checkout
+    defaults:
+      run:
+        working-directory: ./apps/server
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: Set up Node.js version
+        uses: actions/setup-node@v3
+        with:
+          node-version: ${{ env.NODE_VERSION }}
+
+      - name: npm install, build, and test
+        run: |
+          npm install
+      
+      - name: Login to Azure
+        uses: azure/login@v2
+        with:
+          client-id: ${{ secrets.AZURE_CLIENT_ID }}
+          tenant-id: ${{ secrets.AZURE_TENANT_ID }}
+          subscription-id: ${{ secrets.AZURE_SUBSCRIPTION_ID }}
+
+      - name: 'Deploy to Azure Web App'
+        id: deploy-to-webapp
+        uses: azure/webapps-deploy@v3
+        with:
+          app-name: 'zap-server'
+          slot-name: 'Production'
+          package: './apps/server'
+
+  deploy_client:
+    needs: [detect_changes, deploy_server]
+    if: ${{ !cancelled() && needs.detect_changes.outputs.client == 'true' && needs.deploy_server.result != 'failure' }}
+    runs-on: ubuntu-latest
+    environment: production
+    env:
+      VERCEL_ORG_ID: ${{ secrets.VERCEL_ORG_ID }}
+      VERCEL_PROJECT_ID: ${{ secrets.VERCEL_CLIENT_PROJECT_ID }}
+    defaults:
+      run:
+        working-directory: ./apps/client
+    steps:
+      - uses: actions/checkout@v4
+      - name: Install Vercel CLI
+        run: npm install --global vercel@latest
+      - name: Deploy Project Artifacts to Vercel
+        run: vercel deploy --prod --token=${{ secrets.VERCEL_TOKEN }}
