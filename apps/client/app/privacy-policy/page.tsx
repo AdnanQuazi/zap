@@ -181,8 +181,7 @@ export default function PrivacyPolicyPage() {
                     it. We do not access any other channels or workspace data.
                   </li>
                   <li>
-                    Automatically through commands you invoke in Slack (e.g.
-                    “/zap-ask”)
+                    Zap does not automatically access conversation data; it only retrieves data when a command such as /zap-ask is invoked.
                   </li>
                 </ul>
                 <div className="bg-[#fef800]/5 border border-[#fef800]/20 rounded-lg p-4 mb-4 mt-6">
@@ -252,7 +251,7 @@ export default function PrivacyPolicyPage() {
                   <li>
                     Send contextual data to our LLM provider for real-time
                     answer generation (contextual inference only; we do not
-                    train on your data) but only when use invoke a command (e.g.
+                    train on your data) but only when user invoke a command (e.g.
                     “/zap-ask”)
                   </li>
                 </ul>
@@ -281,7 +280,7 @@ export default function PrivacyPolicyPage() {
                   </li>
                   <li>
                     User and workspace administrators have full control to
-                    export or delete data at any time via commands.
+                    delete data at any time via commands.
                   </li>
                   <li>
                     Secure infrastructure with industry-standard protections
@@ -303,11 +302,6 @@ export default function PrivacyPolicyPage() {
                   <li>Delete your personal information</li>
                   <li>Object to or restrict processing of your data</li>
                 </ul>
-
-                <p className="text-white/80 mb-4">
-                  To exercise these rights, please contact us at
-                  askzap@gmail.com.
-                </p>
               </div>
             </div>
 
