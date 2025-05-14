@@ -81,7 +81,7 @@ const WELCOME_MESSAGE = {
       type: "section",
       text: {
         type: "mrkdwn",
-        text: `*${process.APP_NAME}* is your AI‑powered helper in this workspace. Ask questions about this channel’s history, attached files, or anything else—I’ve got you covered!`,
+        text: `*${process.env.APP_NAME}* is your AI‑powered helper in this workspace. Ask questions about this channel’s history, attached files, or anything else—I’ve got you covered!`,
       },
     },
     {
