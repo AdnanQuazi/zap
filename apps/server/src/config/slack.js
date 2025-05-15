@@ -72,7 +72,7 @@ const slackApplication = new App({
     if (enterpriseId !== undefined) {
       installationData = await fetchInstallation({
         isEnterpriseInstall: true,
-        enterpriseId,
+        teamId,
       });
     }
     // For workspace installations, fetch by team ID
