@@ -10,7 +10,7 @@ module.exports = async ({ command, next, context, client, event }) => {
   }
 
   const teamKey = `slack:bot:channels:${command.team_id}`;
-  const channelId = event.channel_id;
+  const channelId = event.channel;
 
   // 1️⃣ Check our Redis cache first
   const cached = await redis.sismember(teamKey, channelId);
