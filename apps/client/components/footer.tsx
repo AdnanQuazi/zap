@@ -1,4 +1,5 @@
 import { DOCS_URL, EMAIL } from "@/app/constants";
+import Link from "next/link";
 
 export default function Footer() {
   return (
@@ -81,13 +82,12 @@ export default function Footer() {
                 </a>
               </li>
               <li>
-                <a
-                  href={`https://mail.google.com/mail/?view=cm&fs=1&to=${EMAIL}`}
-                  target="_blank"
+                <Link
+                  href="/support"
                   className="text-white/60 hover:text-[#fef800] transition-colors"
                 >
                   Support
-                </a>
+                </Link>
               </li>
             </ul>
           </div>
@@ -112,12 +112,20 @@ export default function Footer() {
                 </a> */}
               </li>
               <li>
-                <a
-                  href="./privacy-policy"
+                <Link
+                  href="/privacy-policy"
                   className="text-white/60 hover:text-[#fef800] transition-colors"
                 >
                   Privacy Policy
-                </a>
+                </Link>
+              </li>
+              <li>
+                <Link
+                  href="/terms-of-service"
+                  className="text-white/60 hover:text-[#fef800] transition-colors"
+                >
+                  Terms of Service
+                </Link>
               </li>
             </ul>
           </div>
