@@ -1,6 +1,6 @@
 const redis = require("../config/redis");
 
-module.exports = async ({ command, next, context, client, event }) => {
+module.exports = async ({ command, next, context, client}) => {
   console.log("Bot-in-channel middleware triggered");
 
   // Allow DM commands through immediately
@@ -10,7 +10,7 @@ module.exports = async ({ command, next, context, client, event }) => {
   }
 
   const teamKey = `slack:bot:channels:${command.team_id}`;
-  const channelId = event.channel;
+  const channelId = command.channel_id;
 
   // 1️⃣ Check our Redis cache first
   const cached = await redis.sismember(teamKey, channelId);
