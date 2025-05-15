@@ -1,4 +1,4 @@
-import { DOCS_URL, EMAIL } from "@/app/constants";
+import { DOCS_URL } from "@/app/constants";
 import Link from "next/link";
 
 export default function Footer() {
