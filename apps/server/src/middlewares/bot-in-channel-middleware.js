@@ -1,28 +1,42 @@
 const redis = require("../config/redis");
 
-module.exports = async ({command, next, context }) => {
-  console.log("Bot in channel middleware triggered");
-  
-  // Skip check for direct messages
+module.exports = async ({ command, next, context, client}) => {
+  console.log("Bot-in-channel middleware triggered");
+
+  // Allow DM commands through immediately
   if (command.channel_name === "directmessage") {
-    await next();
-    return;
+    context.botNotInChannel = false;
+    return next();
   }
 
-  const teamId = command.team_id;
+  const teamKey = `slack:bot:channels:${command.team_id}`;
+  const channelId = command.channel_id;
 
-  // Check if bot is in the channel using Redis
-  const isBotInChannel = await redis.sismember(
-    `slack:bot:channels:${teamId}`,
-    command.channel_id
-  );
+  // 1️⃣ Check our Redis cache first
+  const cached = await redis.sismember(teamKey, channelId);
+  if (cached) {
+    context.botNotInChannel = false;
+    return next();
+  }
 
-  if (isBotInChannel) {
-    // Allow command handler to proceed
-    await next();
-  } else {
-    // Don't call next(), but add a flag to the context
+  // 2️⃣ Fallback to Slack API
+  try {
+    const { channel } = await client.conversations.info({
+      channel: channelId, // fixed typo (was “cahnnel” & using event.channel)
+    });
+
+    if (channel.is_member) {
+      // cache it so we don’t hit the API next time
+      await redis.sadd(teamKey, channelId);
+      context.botNotInChannel = false;
+    } else {
+      context.botNotInChannel = true;
+    }
+  } catch (err) {
+    // e.g. missing scope or not_in_channel
+    console.error("conversations.info error:", err.data?.error || err.message);
     context.botNotInChannel = true;
-    await next()
   }
+
+  return next();
 };
