@@ -8,3 +8,4 @@ onlyBuiltDependencies:
   - protobufjs
   - sharp
   - unrs-resolver
+inject-workspace-packages: true

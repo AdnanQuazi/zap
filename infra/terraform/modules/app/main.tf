@@ -167,7 +167,10 @@ resource "aws_iam_role" "github_actions_role" {
       }
       Condition = {
         StringLike = {
-          "token.actions.githubusercontent.com:sub" = "repo:${var.github_repo}:ref:refs/heads/${var.env_name}"
+          "token.actions.githubusercontent.com:sub" = "repo:${var.github_repo}:environment:${var.env_name}"
+        }
+        StringEquals = {
+          "token.actions.githubusercontent.com:aud" = "sts.amazonaws.com"
         }
       }
     }]
@@ -183,7 +186,13 @@ resource "aws_iam_policy" "github_actions_policy" {
       {
         Effect = "Allow",
         Action = [
-          "ecr:GetAuthorizationToken",
+          "ecr:GetAuthorizationToken"
+        ],
+        Resource = "*"
+      },
+      {
+        Effect = "Allow",
+        Action = [
           "ecr:BatchCheckLayerAvailability",
           "ecr:CompleteLayerUpload",
           "ecr:InitiateLayerUpload",
