@@ -1,0 +1,18 @@
+# Local .terraform directories
+**/.terraform/*
+
+# .tfstate files
+*.tfstate
+*.tfstate.*
+
+# Crash log files
+crash.log
+crash.*.log
+
+# Exclude .tfvars files to avoid commiting secrets
+# (We don't have secrets in ours, but this is good practice)
+*.tfvars
+*.tfvars.json
+
+# Override lock file
+.terraform.lock.hcl

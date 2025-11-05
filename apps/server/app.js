@@ -2,7 +2,6 @@
  * Main application entry point
  * Sets up Express server, Slack bot event handlers and commands
  */
-require("dotenv").config();
 
 const path = require("path");
 const express = require("express");
@@ -99,7 +98,5 @@ expressApp.use((req, res) => {
 /**
  * Start Express server
  */
-const PORT = process.env.PORT || 3001;
-expressApp.listen(PORT, () => 
-  console.log(`[SERVER] Express server running on port ${PORT}`)
-);
+
+module.exports = { expressApp };

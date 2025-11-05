@@ -130,41 +130,77 @@ jobs:
     needs: [detect_changes, apply_migrations, deploy_embedding]
     if: ${{ !cancelled() && needs.detect_changes.outputs.server == 'true' && needs.apply_migrations.result != 'failure' && needs.deploy_embedding.result != 'failure' }}
     runs-on: ubuntu-latest
-    environment:
-      name: 'staging'
-      url: ${{ steps.deploy-to-webapp.outputs.webapp-url }}
+    environment: 'staging'
     permissions:
-      id-token: write #This is required for requesting the JWT
-      contents: read #This is required for actions/checkout
-    defaults:
-      run:
-        working-directory: ./apps/server
+      id-token: write
+      contents: read
+    
     steps:
-      - uses: actions/checkout@v4
+      - name: Checkout code
+        uses: actions/checkout@v4
 
-      - name: Set up Node.js version
-        uses: actions/setup-node@v3
-        with:
-          node-version: ${{ env.NODE_VERSION }}
-
-      - name: npm install, build, and test
+      - name: Install build tools
         run: |
-          npm install
-      
-      - name: Login to Azure
-        uses: azure/login@v2
-        with:
-          client-id: ${{ secrets.AZURE_CLIENT_ID }}
-          tenant-id: ${{ secrets.AZURE_TENANT_ID }}
-          subscription-id: ${{ secrets.AZURE_SUBSCRIPTION_ID }}
+          sudo apt-get update && sudo apt-get install -y jq
 
-      - name: 'Deploy to Azure Web App'
-        id: deploy-to-webapp
-        uses: azure/webapps-deploy@v3
+      - name: Configure AWS Credentials
+        uses: aws-actions/configure-aws-credentials@v4
         with:
-          app-name: 'zap-server-staging'
-          slot-name: 'Production'
-          package: './apps/server'
+          role-to-assume: ${{ secrets.AWS_ROLE_ARN }}
+          aws-region: us-east-1
+
+      - name: Log in to Amazon ECR
+        id: login-ecr
+        uses: aws-actions/amazon-ecr-login@v2
+
+      - name: Build, tag, and push image to Amazon ECR
+        id: build-image
+        env:
+          ECR_REGISTRY: ${{ steps.login-ecr.outputs.registry }}
+          ECR_REPOSITORY: zap-server-staging 
+          IMAGE_TAG: ${{ github.sha }}
+        run: |
+          # Runs the root Dockerfile we created
+          docker build -t $ECR_REGISTRY/$ECR_REPOSITORY:$IMAGE_TAG .
+          docker push $ECR_REGISTRY/$ECR_REPOSITORY:$IMAGE_TAG
+          echo "image_uri=$ECR_REGISTRY/$ECR_REPOSITORY:$IMAGE_TAG" >> $GITHUB_OUTPUT
+
+      - name: Update Lambda Function and get new version
+        id: update-lambda
+        env:
+          LAMBDA_FUNCTION_NAME: zap-server-staging 
+        run: |
+          echo "Updating Lambda function: $LAMBDA_FUNCTION_NAME"
+          # Publish a new version and capture the JSON output
+          output=$(aws lambda update-function-code \
+            --function-name $LAMBDA_FUNCTION_NAME \
+            --image-uri ${{ steps.build-image.outputs.image_uri }} \
+            --publish)
+          
+          # Parse the output to get the new version number
+          NEW_VERSION=$(echo $output | jq -r .Version)
+          echo "Published new version: $NEW_VERSION"
+          echo "new_version=$NEW_VERSION" >> $GITHUB_OUTPUT
+
+      - name: Wait for Lambda update to finish
+        env:
+          LAMBDA_FUNCTION_NAME: zap-server-staging
+        run: |
+          echo "Waiting for version ${{ steps.update-lambda.outputs.new_version }} to be active..."
+          aws lambda wait function-updated-v2 \
+            --function-name $LAMBDA_FUNCTION_NAME \
+            --qualifier ${{ steps.update-lambda.outputs.new_version }}
+
+      - name: Update 'live' alias to new version
+        env:
+          LAMBDA_FUNCTION_NAME: zap-server-staging
+        run: |
+          echo "Pointing 'live' alias to version ${{ steps.update-lambda.outputs.new_version }}..."
+          aws lambda update-alias \
+            --function-name $LAMBDA_FUNCTION_NAME \
+            --name live \
+            --function-version ${{ steps.update-lambda.outputs.new_version }}
+          echo "Staging deployment complete."
 
   deploy_client:
     needs: [detect_changes, deploy_server]
