@@ -8,8 +8,8 @@
     "bootstrap": "pnpm install && pnpm run bootstrap:python",
     "bootstrap:python": "cd services/embedding-service && pip install -r requirements.txt",
     "dev": "turbo run dev --parallel",
-    "dev:server": "pnpm --filter zap-server run dev",
-    "dev:client": "pnpm --filter zap-client run dev",
+    "dev:server": "pnpm --filter server run dev",
+    "dev:client": "pnpm --filter client run dev",
     "dev:python": "pnpm --filter embedding-service run dev",
     "build": "turbo run build",
     "lint": "turbo run lint"
