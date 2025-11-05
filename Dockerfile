@@ -6,6 +6,7 @@ RUN pnpm install --frozen-lockfile
 COPY . .
 FROM builder AS pruner
 WORKDIR /app
+COPY pnpm-workspace.yaml ./
 RUN mkdir /prod_app
 RUN pnpm deploy --filter ./apps/server --prod /prod_app
 FROM public.ecr.aws/lambda/nodejs:20
