@@ -130,41 +130,43 @@ jobs:
     needs: [detect_changes, apply_migrations, deploy_embedding]
     if: ${{ !cancelled() && needs.detect_changes.outputs.server == 'true' && needs.apply_migrations.result != 'failure' && needs.deploy_embedding.result != 'failure' }}
     runs-on: ubuntu-latest
-    environment:
-      name: 'staging'
-      url: ${{ steps.deploy-to-webapp.outputs.webapp-url }}
-    permissions:
-      id-token: write #This is required for requesting the JWT
-      contents: read #This is required for actions/checkout
-    defaults:
-      run:
-        working-directory: ./apps/server
+    environment: staging
     steps:
       - uses: actions/checkout@v4
 
-      - name: Set up Node.js version
-        uses: actions/setup-node@v3
+      - name: Install pnpm
+        uses: pnpm/action-setup@v3
         with:
-          node-version: ${{ env.NODE_VERSION }}
+          version: 9
 
-      - name: npm install, build, and test
-        run: |
-          npm install
-      
-      - name: Login to Azure
-        uses: azure/login@v2
-        with:
-          client-id: ${{ secrets.AZURE_CLIENT_ID }}
-          tenant-id: ${{ secrets.AZURE_TENANT_ID }}
-          subscription-id: ${{ secrets.AZURE_SUBSCRIPTION_ID }}
+      - name: Create Isolated Server Bundle
+        run: pnpm deploy --filter=server --prod temp-deploy
 
-      - name: 'Deploy to Azure Web App'
-        id: deploy-to-webapp
-        uses: azure/webapps-deploy@v3
+      - name: Deploy via Rsync
+        uses: Burnett01/rsync-deployments@7.0.0
         with:
-          app-name: 'zap-server-staging'
-          slot-name: 'Production'
-          package: './apps/server'
+          switches: -avzr --delete
+          path: temp-deploy/
+          remote_path: /home/ubuntu/app-staging/
+          remote_host: ${{ secrets.HOST_IP }}
+          remote_user: ubuntu
+          remote_key: ${{ secrets.EC2_SSH_KEY }}
+
+      - name: Post-deploy Restart
+        uses: appleboy/ssh-action@v1.0.3
+        env:
+          DOPPLER_TOKEN: ${{ secrets.DOPPLER_TOKEN }}
+        with:
+          host: ${{ secrets.HOST_IP }}
+          username: ubuntu
+          key: ${{ secrets.EC2_SSH_KEY }}
+          envs: DOPPLER_TOKEN
+          script: |
+            cd /home/ubuntu/app-staging
+            
+            doppler secrets download --no-prefix --format docker > .env
+            
+            pm2 restart app-staging || pm2 start index.js --name app-staging -- --port 3001
 
   deploy_client:
     needs: [detect_changes, deploy_server]

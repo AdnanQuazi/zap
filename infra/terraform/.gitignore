@@ -1,0 +1,13 @@
+# Local .terraform directories
+.terraform/
+
+# .tfstate files
+*.tfstate
+*.tfstate.backup
+
+# .tfvars files
+# Do not commit your actual variable files!
+*.tfvars
+
+# .terraform.lock.hcl
+.terraform.lock.hcl
