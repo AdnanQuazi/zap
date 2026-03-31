@@ -164,7 +164,7 @@ jobs:
           script: |
             cd /home/ubuntu/app-staging
             
-            doppler secrets download --no-prefix --format docker > .env
+            doppler secrets download --format docker --no-file > .env
             
             pm2 restart app-staging || pm2 start index.js --name app-staging -- --port 3001
 

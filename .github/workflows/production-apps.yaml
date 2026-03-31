@@ -164,7 +164,7 @@ jobs:
           script: |
             cd /home/ubuntu/app-production
             
-            doppler secrets download --no-prefix --format docker > .env
+            doppler secrets download --format docker --no-file > .env
             
             pm2 restart app-production || pm2 start index.js --name app-production -- --port 3000
 
