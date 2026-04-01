@@ -162,7 +162,7 @@ jobs:
       - name: Post-deploy Restart
         uses: appleboy/ssh-action@v1.0.3
         env:
-          DOPPLER_TOKEN: ${{ secrets.DOPPLER_TOKEN }}
+          DOPPLER_TOKEN: ${{ secrets.DOPPLER_TOKEN_SERVER }}
         with:
           host: ${{ secrets.HOST_IP }}
           username: ubuntu
