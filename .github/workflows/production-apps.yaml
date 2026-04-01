@@ -23,10 +23,10 @@ on:
         default: 'false'
 
 env:
-  NODE_VERSION: '20'
+  NODE_VERSION: '22.14.0'
   PYTHON_VERSION: '3.11.9'
-  SUPABASE_CLI_VERSION: '2.22.6'
-  MODAL_VERSION: '0.74.24'
+  SUPABASE_CLI_VERSION: '2.84.0'
+  MODAL_VERSION: '1.4.1'
 
 jobs:
   detect_changes:
