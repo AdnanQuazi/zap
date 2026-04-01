@@ -67,3 +67,9 @@ yarn-debug.log*
 # Misc
 .env
 .turbo/
+
+#certificates
+*.key
+*.pem
+*.pub
+zap-ec2-key

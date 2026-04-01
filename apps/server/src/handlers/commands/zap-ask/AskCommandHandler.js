@@ -35,7 +35,7 @@ class AskCommandHandler {
     // Initialize dependencies
     this.genAI =
       dependencies.genAI || new GoogleGenerativeAI(process.env.GEMINI_API_KEY);
-    this.model = this.genAI.getGenerativeModel({ model: "gemini-2.0-flash" });
+    this.model = this.genAI.getGenerativeModel({ model: "gemini-3.1-flash-lite-preview" });
 
     // Initialize components
     this.queryProcessor = new QueryProcessor({ cache: responseCache, genAI: this.genAI });
