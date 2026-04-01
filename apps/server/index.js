@@ -99,7 +99,7 @@ expressApp.use((req, res) => {
 /**
  * Start Express server
  */
-const PORT = process.env.PORT || 3001;
+const PORT = process.env.PORT || 3000;
 expressApp.listen(PORT, () => 
   console.log(`[SERVER] Express server running on port ${PORT}`)
 );

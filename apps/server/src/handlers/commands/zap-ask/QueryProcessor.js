@@ -16,7 +16,7 @@ class QueryProcessor {
     this.genAI =
       dependencies.genAI || new GoogleGenerativeAI(process.env.GEMINI_API_KEY);
     this.planningModel = this.genAI.getGenerativeModel({
-      model: "gemini-2.0-flash-lite",
+      model: "gemini-3-flash-preview",
     });
     
     // Define conversational patterns
